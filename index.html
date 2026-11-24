@@ -24,6 +24,8 @@ button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outli
 header,.stats,.actions,.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;margin:0;font-size:23px;letter-spacing:-.05em}
 .brand img{width:36px;height:36px;border-radius:10px}
+.brand-group{min-width:0}
+.active-set{margin:3px 0 0;color:var(--muted);font-size:13px;font-weight:650;overflow-wrap:anywhere}
 .top-actions{display:flex;gap:8px}
 .gear{width:46px;padding:0;font-size:23px}
 .badge{color:var(--accent);font-size:12px}
@@ -47,6 +49,7 @@ progress::-moz-progress-bar{background:var(--accent)}
 .word,.translation{margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
 .word{font-size:clamp(24px,7vw,53px);font-weight:780;line-height:1.08;letter-spacing:-.045em}
 .translation{color:#eee7ff;font-size:clamp(17px,4.6vw,27px);line-height:1.24}
+.pronunciation{margin:5px 0 0;color:#e1d5ff;font-size:clamp(13px,3.8vw,20px);line-height:1.2}
 .rule{width:36px;height:2px;background:#ffffff65;margin:clamp(7px,2dvh,18px) auto;border:0}
 .empty{padding:16px;text-align:center;display:grid;align-content:center;justify-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);overflow:auto}
 .empty h2,.empty p,.dialog-head h2{margin:0}
@@ -66,6 +69,11 @@ section:last-child{border:0;padding-bottom:0}
 section h3{margin:0 0 6px}
 section p{margin:6px 0 12px}
 .controls{display:flex;flex-wrap:wrap;gap:8px}
+.set-list{list-style:none;padding:0;margin:0;display:grid;gap:7px}
+.set-list button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left}
+.set-list button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.set-name{overflow-wrap:anywhere}
+.set-progress{flex:none;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
 .primary{background:var(--accent);color:var(--bg);border:0}
 .danger{color:var(--no)}
 summary{cursor:pointer;font-weight:700;padding:10px 0}
@@ -77,7 +85,7 @@ summary{cursor:pointer;font-weight:700;padding:10px 0}
 <body>
 <main class="app">
   <header>
-    <h1 class="brand"><img id="brand-icon" alt="" width="36" height="36">ZnamTo</h1>
+    <div class="brand-group"><h1 class="brand"><img id="brand-icon" alt="" width="36" height="36">ZnamTo</h1><p id="active-set" class="active-set"></p></div>
     <div class="top-actions">
       <button id="badge" class="badge" hidden>Nowa wersja</button>
       <button id="settings-open" class="gear" aria-label="Ustawienia" title="Ustawienia">⚙</button>
@@ -91,7 +99,7 @@ summary{cursor:pointer;font-weight:700;padding:10px 0}
     <article id="card" class="card" aria-label="Fiszka" hidden>
       <span id="languages" class="languages"></span>
       <span id="swipe-label" class="swipe-label" hidden></span>
-      <div class="words" aria-live="polite"><h2 id="word" class="word"></h2><hr class="rule"><p id="translation" class="translation"></p></div>
+      <div class="words" aria-live="polite"><h2 id="word" class="word"></h2><p id="pronunciation" class="pronunciation" hidden></p><hr class="rule"><p id="translation" class="translation"></p></div>
     </article>
     <div id="empty" class="empty" hidden>
       <span id="empty-mark" class="empty-mark" aria-hidden="true"></span>
@@ -107,9 +115,13 @@ summary{cursor:pointer;font-weight:700;padding:10px 0}
 <dialog id="settings" aria-labelledby="settings-title">
   <div class="dialog-head"><h2 id="settings-title">Ustawienia</h2><form method="dialog"><button aria-label="Zamknij ustawienia">✕</button></form></div>
   <div class="dialog-body">
+    <section aria-labelledby="sets-heading">
+      <h3 id="sets-heading">Zestawy słówek</h3>
+      <ul id="set-list" class="set-list"></ul>
+    </section>
     <section>
       <h3>Import z Excela</h3>
-      <p>Pierwszy arkusz powinien mieć cztery kolumny: język słowa, język tłumaczenia, słowo i tłumaczenie. Nagłówek jest opcjonalny. Import zastępuje obecny zestaw.</p>
+      <p>W pierwszym arkuszu wpisz język słowa, język tłumaczenia, słowo i tłumaczenie. Transkrypcję możesz wpisać w piątej kolumnie. Nagłówek jest opcjonalny. Każdy import tworzy nowy zestaw.</p>
       <div class="controls"><button id="choose" class="primary">Wybierz plik Excel</button><button id="template">Pobierz szablon .xlsx</button></div>
       <input id="file" type="file" accept=".xls,.xlsx" hidden>
       <p id="import-status" role="status" hidden></p>
@@ -123,7 +135,8 @@ summary{cursor:pointer;font-weight:700;padding:10px 0}
     </section>
     <section>
       <h3>Zestaw i postęp</h3>
-      <div class="controls"><button id="reset">Resetuj postęp</button><button id="clear" class="danger">Wyczyść bazę słów</button></div>
+      <p id="managed-set"></p>
+      <div class="controls"><button id="reset">Resetuj postęp zestawu</button><button id="clear" class="danger" hidden>Usuń własny zestaw</button></div>
     </section>
   </div>
 </dialog>
@@ -134,8 +147,15 @@ summary{cursor:pointer;font-weight:700;padding:10px 0}
 <div id="toast" class="toast" role="status" hidden></div>
 <script id="app-script">
 "use strict";
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.2.0";
 const RELEASE_NOTES = [
+  { version: "1.2.0", date: "2026-11-24", items: [
+    "Każdy zestaw B1/B2 zawiera teraz 80 fiszek z IPA. Dotychczasowy postęp jest zachowany."
+  ] },
+  { version: "1.1.0", date: "2026-11-24", items: [
+    "Pięć tematycznych zestawów B1/B2 z transkrypcją IPA i osobnym postępem.",
+    "Każdy import tworzy osobny zestaw. Piąta kolumna arkusza może zawierać transkrypcję."
+  ] },
   { version: "1.0.0", date: "2026-11-24", items: [
     "Fiszki z gestami i automatycznymi rundami powtórek.",
     "Import .xlsx i .xls oraz gotowy szablon.",
@@ -143,14 +163,420 @@ const RELEASE_NOTES = [
   ] }
 ];
 const SHEETJS = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
-const STORAGE_KEY = "znamto.study";
+const STORAGE_KEY = "znamto.sets";
+const LEGACY_STORAGE_KEY = "znamto.study";
 const VERSION_KEY = "znamto.version";
-const DEMO = [
-  ["EN", "PL", "ubiquitous", "wszechobecny"],
-  ["EN", "PL", "glimpse", "przelotne spojrzenie"],
-  ["EN", "PL", "resilient", "odporny"],
-  ["EN", "PL", "wander", "wędrować"],
-  ["EN", "PL", "thoughtful", "troskliwy"]
+const BUILT_IN_SETS = [
+  { id: "work", name: "Praca i biznes", entries: [
+    ["meet a deadline", "dotrzymać terminu", "/miːt ə ˈdedlaɪn/"],
+    ["take on responsibility", "wziąć na siebie odpowiedzialność", "/teɪk ɒn rɪˌspɒnsəˈbɪləti/"],
+    ["bring up an issue", "poruszyć problem", "/brɪŋ ʌp ən ˈɪʃuː/"],
+    ["follow up on an email", "wrócić do sprawy z e-maila", "/ˈfɒləʊ ʌp ɒn ən ˈiːmeɪl/"],
+    ["hand in a report", "oddać raport", "/hænd ɪn ə rɪˈpɔːt/"],
+    ["come up with an idea", "wpaść na pomysł", "/kʌm ʌp wɪð ən aɪˈdɪə/"],
+    ["workload", "ilość pracy", "/ˈwɜːkləʊd/"],
+    ["reach an agreement", "dojść do porozumienia", "/riːtʃ ən əˈɡriːmənt/"],
+    ["be on the same page", "tak samo rozumieć sytuację", "/bi ɒn ðə seɪm peɪdʒ/"],
+    ["give feedback", "udzielić informacji zwrotnej", "/ɡɪv ˈfiːdbæk/"],
+    ["put off a meeting", "przełożyć spotkanie na później", "/pʊt ɒf ə ˈmiːtɪŋ/"],
+    ["run out of time", "nie mieć już czasu", "/rʌn aʊt əv taɪm/"],
+    ["take minutes", "sporządzić protokół ze spotkania", "/teɪk ˈmɪnɪts/"],
+    ["draw up a contract", "sporządzić umowę", "/drɔː ʌp ə ˈkɒntrækt/"],
+    ["sign off on a proposal", "zatwierdzić propozycję", "/saɪn ɒf ɒn ə prəˈpəʊzəl/"],
+    ["look into a complaint", "zbadać reklamację", "/lʊk ˈɪntuː ə kəmˈpleɪnt/"],
+    ["sort out a misunderstanding", "wyjaśnić nieporozumienie", "/sɔːt aʊt ə ˌmɪsʌndəˈstændɪŋ/"],
+    ["deal with a setback", "poradzić sobie z niepowodzeniem", "/diːl wɪð ə ˈsetbæk/"],
+    ["go over the figures", "przejrzeć dane liczbowe", "/ɡəʊ ˈəʊvə ðə ˈfɪɡəz/"],
+    ["keep track of expenses", "monitorować wydatki", "/kiːp træk əv ɪkˈspensɪz/"],
+    ["stay within budget", "zmieścić się w budżecie", "/steɪ wɪˈðɪn ˈbʌdʒɪt/"],
+    ["go over budget", "przekroczyć budżet", "/ɡəʊ ˈəʊvə ˈbʌdʒɪt/"],
+    ["cut costs", "obniżyć koszty", "/kʌt kɒsts/"],
+    ["cover the costs", "pokryć koszty", "/ˈkʌvə ðə kɒsts/"],
+    ["break even", "wyjść na zero", "/breɪk ˈiːvən/"],
+    ["make a profit", "osiągnąć zysk", "/meɪk ə ˈprɒfɪt/"],
+    ["profit margin", "marża zysku", "/ˈprɒfɪt ˈmɑːdʒɪn/"],
+    ["cash flow", "przepływ gotówki", "/kæʃ fləʊ/"],
+    ["raise funds", "pozyskać środki", "/reɪz fʌndz/"],
+    ["submit an invoice", "przesłać fakturę", "/səbˈmɪt ən ˈɪnvɔɪs/"],
+    ["outstanding payment", "nieuregulowana płatność", "/aʊtˈstændɪŋ ˈpeɪmənt/"],
+    ["negotiate a deal", "wynegocjować umowę", "/nɪˈɡəʊʃieɪt ə diːl/"],
+    ["make a counteroffer", "złożyć kontrofertę", "/meɪk ə ˈkaʊntərɒfə/"],
+    ["agree on the terms", "uzgodnić warunki", "/əˈɡriː ɒn ðə tɜːmz/"],
+    ["back out of a deal", "wycofać się z umowy", "/bæk aʊt əv ə diːl/"],
+    ["win a contract", "zdobyć kontrakt", "/wɪn ə ˈkɒntrækt/"],
+    ["renew a subscription", "odnowić subskrypcję", "/rɪˈnjuː ə səbˈskrɪpʃən/"],
+    ["launch a product", "wprowadzić produkt na rynek", "/lɔːntʃ ə ˈprɒdʌkt/"],
+    ["target audience", "grupa docelowa", "/ˈtɑːɡɪt ˈɔːdiəns/"],
+    ["conduct market research", "przeprowadzić badanie rynku", "/kənˈdʌkt ˈmɑːkɪt rɪˈsɜːtʃ/"],
+    ["gain market share", "zwiększyć udział w rynku", "/ɡeɪn ˈmɑːkɪt ʃeə/"],
+    ["customer retention", "utrzymanie klientów", "/ˈkʌstəmə rɪˈtenʃən/"],
+    ["word of mouth", "polecenia z ust do ust", "/wɜːd əv maʊθ/"],
+    ["handle a request", "zająć się prośbą", "/ˈhændəl ə rɪˈkwest/"],
+    ["make an exception", "zrobić wyjątek", "/meɪk ən ɪkˈsepʃən/"],
+    ["keep someone in the loop", "informować kogoś na bieżąco", "/kiːp ˈsʌmwʌn ɪn ðə luːp/"],
+    ["touch base with someone", "krótko się z kimś skontaktować", "/tʌtʃ beɪs wɪð ˈsʌmwʌn/"],
+    ["get back to a client", "odpowiedzieć klientowi później", "/ɡet bæk tə ə ˈklaɪənt/"],
+    ["set a goal", "wyznaczyć cel", "/set ə ɡəʊl/"],
+    ["meet a target", "osiągnąć wyznaczony wynik", "/miːt ə ˈtɑːɡɪt/"],
+    ["fall behind schedule", "mieć opóźnienie względem planu", "/fɔːl bɪˈhaɪnd ˈʃedjuːl/"],
+    ["catch up on work", "nadrobić zaległości w pracy", "/kætʃ ʌp ɒn wɜːk/"],
+    ["hand over a project", "przekazać projekt", "/hænd ˈəʊvər ə ˈprɒdʒekt/"],
+    ["take over a role", "przejąć czyjeś obowiązki", "/teɪk ˈəʊvər ə rəʊl/"],
+    ["delegate tasks", "delegować zadania", "/ˈdelɪɡeɪt tɑːsks/"],
+    ["prioritise tasks", "ustalić priorytety zadań", "/praɪˈɒrətaɪz tɑːsks/"],
+    ["cover a shift", "zastąpić kogoś na zmianie", "/ˈkʌvər ə ʃɪft/"],
+    ["work overtime", "pracować po godzinach", "/wɜːk ˈəʊvətaɪm/"],
+    ["take time off", "wziąć wolne", "/teɪk taɪm ɒf/"],
+    ["flexible working hours", "elastyczne godziny pracy", "/ˈfleksəbəl ˈwɜːkɪŋ ˈaʊəz/"],
+    ["work remotely", "pracować zdalnie", "/wɜːk rɪˈməʊtli/"],
+    ["apply for a vacancy", "ubiegać się o wolne stanowisko", "/əˈplaɪ fər ə ˈveɪkənsi/"],
+    ["write a cover letter", "napisać list motywacyjny", "/raɪt ə ˈkʌvə ˈletə/"],
+    ["shortlist candidates", "wybrać kandydatów do kolejnego etapu", "/ˈʃɔːtlɪst ˈkændɪdəts/"],
+    ["attend an interview", "pójść na rozmowę kwalifikacyjną", "/əˈtend ən ˈɪntəvjuː/"],
+    ["check references", "sprawdzić referencje", "/tʃek ˈrefərənsɪz/"],
+    ["accept a job offer", "przyjąć ofertę pracy", "/əkˈsept ə dʒɒb ˈɒfə/"],
+    ["on-the-job training", "szkolenie na stanowisku pracy", "/ɒn ðə dʒɒb ˈtreɪnɪŋ/"],
+    ["probation period", "okres próbny", "/prəˈbeɪʃən ˈpɪəriəd/"],
+    ["performance review", "ocena wyników pracy", "/pəˈfɔːməns rɪˈvjuː/"],
+    ["ask for a pay rise", "poprosić o podwyżkę", "/ɑːsk fər ə peɪ raɪz/"],
+    ["get promoted", "awansować", "/ɡet prəˈməʊtɪd/"],
+    ["hand in your notice", "złożyć wypowiedzenie", "/hænd ɪn jə ˈnəʊtɪs/"],
+    ["notice period", "okres wypowiedzenia", "/ˈnəʊtɪs ˈpɪəriəd/"],
+    ["lay off staff", "zwolnić pracowników z przyczyn ekonomicznych", "/leɪ ɒf stɑːf/"],
+    ["staff turnover", "rotacja pracowników", "/stɑːf ˈtɜːnəʊvə/"],
+    ["equal opportunities", "równe szanse", "/ˈiːkwəl ˌɒpəˈtjuːnətiz/"],
+    ["work-life balance", "równowaga między pracą a życiem prywatnym", "/wɜːk laɪf ˈbæləns/"],
+    ["wrap up a meeting", "zakończyć spotkanie", "/ræp ʌp ə ˈmiːtɪŋ/"],
+    ["take something on board", "wziąć coś pod uwagę", "/teɪk ˈsʌmθɪŋ ɒn bɔːd/"]
+  ] },
+  { id: "travel", name: "Podróże i logistyka", entries: [
+    ["set off early", "wyruszyć wcześnie", "/set ɒf ˈɜːli/"],
+    ["check in online", "odprawić się przez internet", "/tʃek ɪn ˌɒnˈlaɪn/"],
+    ["pick up a rental car", "odebrać samochód z wypożyczalni", "/pɪk ʌp ə ˈrentəl kɑː/"],
+    ["drop someone off", "podwieźć kogoś na miejsce", "/drɒp ˈsʌmwʌn ɒf/"],
+    ["catch a connecting flight", "zdążyć na lot przesiadkowy", "/kætʃ ə kəˈnektɪŋ flaɪt/"],
+    ["carry-on luggage", "bagaż podręczny", "/ˈkæri ɒn ˈlʌɡɪdʒ/"],
+    ["estimated arrival time", "przewidywany czas przybycia", "/ˈestɪmeɪtɪd əˈraɪvəl taɪm/"],
+    ["track a delivery", "śledzić przesyłkę", "/træk ə dɪˈlɪvəri/"],
+    ["take a detour", "pojechać objazdem", "/teɪk ə ˈdiːtʊə/"],
+    ["get around town", "poruszać się po mieście", "/ɡet əˈraʊnd taʊn/"],
+    ["be held up in traffic", "utknąć w korku", "/bi held ʌp ɪn ˈtræfɪk/"],
+    ["get a refund", "otrzymać zwrot pieniędzy", "/ɡet ə ˈriːfʌnd/"],
+    ["book in advance", "zarezerwować z wyprzedzeniem", "/bʊk ɪn ədˈvɑːns/"],
+    ["make a reservation", "dokonać rezerwacji", "/meɪk ə ˌrezəˈveɪʃən/"],
+    ["fully booked", "z kompletem rezerwacji", "/ˌfʊli ˈbʊkt/"],
+    ["single ticket", "bilet w jedną stronę", "/ˈsɪŋɡəl ˈtɪkɪt/"],
+    ["return ticket", "bilet w obie strony", "/rɪˈtɜːn ˈtɪkɪt/"],
+    ["off-peak fare", "cena biletu poza godzinami szczytu", "/ˌɒf ˈpiːk feə/"],
+    ["travel insurance", "ubezpieczenie podróżne", "/ˈtrævəl ɪnˈʃʊərəns/"],
+    ["itinerary", "plan podróży", "/aɪˈtɪnərəri/"],
+    ["boarding pass", "karta pokładowa", "/ˈbɔːdɪŋ pɑːs/"],
+    ["departure lounge", "poczekalnia w hali odlotów", "/dɪˈpɑːtʃə laʊndʒ/"],
+    ["go through security", "przejść kontrolę bezpieczeństwa", "/ɡəʊ θruː sɪˈkjʊərəti/"],
+    ["baggage allowance", "limit bagażu", "/ˈbæɡɪdʒ əˈlaʊəns/"],
+    ["check in a suitcase", "nadać walizkę", "/tʃek ɪn ə ˈsuːtkeɪs/"],
+    ["overhead locker", "schowek nad siedzeniem", "/ˈəʊvəhed ˈlɒkə/"],
+    ["aisle seat", "miejsce przy przejściu", "/aɪl siːt/"],
+    ["seat belt", "pas bezpieczeństwa", "/siːt belt/"],
+    ["take off", "wystartować", "/teɪk ɒf/"],
+    ["touch down", "wylądować", "/tʌtʃ daʊn/"],
+    ["layover", "przerwa między lotami", "/ˈleɪəʊvə/"],
+    ["miss a connection", "spóźnić się na połączenie przesiadkowe", "/mɪs ə kəˈnekʃən/"],
+    ["baggage reclaim", "odbiór bagażu", "/ˈbæɡɪdʒ rɪˈkleɪm/"],
+    ["declare goods", "zgłosić towary do odprawy celnej", "/dɪˈkleə ɡʊdz/"],
+    ["exchange currency", "wymienić walutę", "/ɪksˈtʃeɪndʒ ˈkʌrənsi/"],
+    ["withdraw cash", "wypłacić gotówkę", "/wɪðˈdrɔː kæʃ/"],
+    ["arrange a transfer", "zorganizować przejazd", "/əˈreɪndʒ ə ˈtrænsfɜː/"],
+    ["shuttle bus", "autobus wahadłowy", "/ˈʃʌtəl bʌs/"],
+    ["get on the wrong train", "wsiąść do niewłaściwego pociągu", "/ɡet ɒn ðə rɒŋ treɪn/"],
+    ["get off at the next stop", "wysiąść na następnym przystanku", "/ɡet ɒf ət ðə nekst stɒp/"],
+    ["change at the next station", "przesiąść się na następnej stacji", "/tʃeɪndʒ ət ðə nekst ˈsteɪʃən/"],
+    ["rail replacement bus", "autobusowa komunikacja zastępcza", "/reɪl rɪˈpleɪsmənt bʌs/"],
+    ["within walking distance", "w zasięgu krótkiego spaceru", "/wɪˈðɪn ˈwɔːkɪŋ ˈdɪstəns/"],
+    ["lose your way", "zgubić drogę", "/luːz jə weɪ/"],
+    ["ask for directions", "zapytać o drogę", "/ɑːsk fə dəˈrekʃənz/"],
+    ["head towards the coast", "kierować się w stronę wybrzeża", "/hed təˈwɔːdz ðə kəʊst/"],
+    ["go straight ahead", "iść prosto przed siebie", "/ɡəʊ streɪt əˈhed/"],
+    ["take the second exit", "zjechać drugim zjazdem", "/teɪk ðə ˈsekənd ˈeɡzɪt/"],
+    ["toll road", "droga płatna", "/təʊl rəʊd/"],
+    ["fill up the tank", "zatankować do pełna", "/fɪl ʌp ðə tæŋk/"],
+    ["pull over", "zjechać na pobocze", "/pʊl ˈəʊvə/"],
+    ["break down", "zepsuć się w drodze", "/breɪk daʊn/"],
+    ["roadside assistance", "pomoc drogowa", "/ˈrəʊdsaɪd əˈsɪstəns/"],
+    ["speed limit", "ograniczenie prędkości", "/spiːd ˈlɪmɪt/"],
+    ["rush hour", "godzina szczytu", "/rʌʃ ˈaʊə/"],
+    ["roadworks", "roboty drogowe", "/ˈrəʊdwɜːks/"],
+    ["accommodation", "zakwaterowanie", "/əˌkɒməˈdeɪʃən/"],
+    ["self-catering apartment", "apartament z kuchnią do własnej dyspozycji", "/ˌself ˈkeɪtərɪŋ əˈpɑːtmənt/"],
+    ["leave a deposit", "zostawić kaucję", "/liːv ə dɪˈpɒzɪt/"],
+    ["check out of a hotel", "wymeldować się z hotelu", "/tʃek aʊt əv ə həʊˈtel/"],
+    ["store your luggage", "przechować bagaż", "/stɔː jə ˈlʌɡɪdʒ/"],
+    ["accessible room", "pokój przystosowany dla osób z niepełnosprawnościami", "/əkˈsesəbəl ruːm/"],
+    ["room with a view", "pokój z widokiem", "/ruːm wɪð ə vjuː/"],
+    ["guided tour", "wycieczka z przewodnikiem", "/ˈɡaɪdɪd tʊə/"],
+    ["go sightseeing", "zwiedzać", "/ɡəʊ ˈsaɪtsiːɪŋ/"],
+    ["off the beaten track", "poza utartym szlakiem", "/ɒf ðə ˈbiːtən træk/"],
+    ["travel light", "podróżować z małym bagażem", "/ˈtrævəl laɪt/"],
+    ["pack the essentials", "spakować najpotrzebniejsze rzeczy", "/pæk ði ɪˈsenʃəlz/"],
+    ["put together a route", "ułożyć trasę", "/pʊt təˈɡeðər ə ruːt/"],
+    ["shipping address", "adres dostawy", "/ˈʃɪpɪŋ əˈdres/"],
+    ["dispatch an order", "wysłać zamówienie", "/dɪˈspætʃ ən ˈɔːdə/"],
+    ["tracking number", "numer śledzenia przesyłki", "/ˈtrækɪŋ ˈnʌmbə/"],
+    ["collection point", "punkt odbioru", "/kəˈlekʃən pɔɪnt/"],
+    ["sign for a parcel", "potwierdzić podpisem odbiór przesyłki", "/saɪn fər ə ˈpɑːsəl/"],
+    ["out for delivery", "w doręczeniu", "/aʊt fə dɪˈlɪvəri/"],
+    ["estimated delivery date", "przewidywana data dostawy", "/ˈestɪmeɪtɪd dɪˈlɪvəri deɪt/"],
+    ["handle with care", "ostrożnie obchodzić się z przesyłką", "/ˈhændəl wɪð keə/"],
+    ["return label", "etykieta zwrotna", "/rɪˈtɜːn ˈleɪbəl/"],
+    ["reschedule a delivery", "zmienić termin dostawy", "/ˌriːˈʃedjuːl ə dɪˈlɪvəri/"],
+    ["lost property office", "biuro rzeczy znalezionych", "/lɒst ˈprɒpəti ˈɒfɪs/"]
+  ] },
+  { id: "tech", name: "Technologia i projektowanie", entries: [
+    ["set up an account", "założyć konto", "/set ʌp ən əˈkaʊnt/"],
+    ["back up your files", "zrobić kopię zapasową plików", "/bæk ʌp jə faɪlz/"],
+    ["roll out an update", "wdrożyć aktualizację", "/rəʊl aʊt ən ˈʌpdeɪt/"],
+    ["fix a bug", "naprawić błąd", "/fɪks ə bʌɡ/"],
+    ["work around a limitation", "obejść ograniczenie", "/wɜːk əˈraʊnd ə ˌlɪmɪˈteɪʃən/"],
+    ["user-friendly", "łatwy w obsłudze", "/ˌjuːzə ˈfrendli/"],
+    ["sketch out a layout", "naszkicować układ", "/sketʃ aʊt ə ˈleɪaʊt/"],
+    ["test a prototype", "przetestować prototyp", "/test ə ˈprəʊtətaɪp/"],
+    ["make room for new features", "zrobić miejsce na nowe funkcje", "/meɪk ruːm fə njuː ˈfiːtʃəz/"],
+    ["narrow down the options", "zawęzić wybór", "/ˈnærəʊ daʊn ði ˈɒpʃənz/"],
+    ["figure out how it works", "zrozumieć, jak to działa", "/ˈfɪɡə aʊt haʊ ɪt wɜːks/"],
+    ["make a trade-off", "pójść na kompromis", "/meɪk ə ˈtreɪd ɒf/"],
+    ["wireframe", "szkielet interfejsu", "/ˈwaɪəfreɪm/"],
+    ["mock-up", "makieta", "/ˈmɒk ʌp/"],
+    ["design brief", "opis założeń projektowych", "/dɪˈzaɪn briːf/"],
+    ["gather requirements", "zebrać wymagania", "/ˈɡæðə rɪˈkwaɪəmənts/"],
+    ["define the scope", "określić zakres", "/dɪˈfaɪn ðə skəʊp/"],
+    ["map out a user journey", "rozplanować ścieżkę użytkownika", "/mæp aʊt ə ˈjuːzə ˈdʒɜːni/"],
+    ["carry out user research", "przeprowadzić badania z użytkownikami", "/ˈkæri aʊt ˈjuːzə rɪˈsɜːtʃ/"],
+    ["gather feedback", "zebrać opinie", "/ˈɡæðə ˈfiːdbæk/"],
+    ["act on feedback", "wprowadzić zmiany na podstawie opinii", "/ækt ɒn ˈfiːdbæk/"],
+    ["make a rough draft", "przygotować wstępny szkic", "/meɪk ə rʌf drɑːft/"],
+    ["fine-tune the details", "dopracować szczegóły", "/ˌfaɪn ˈtjuːn ðə ˈdiːteɪlz/"],
+    ["visual hierarchy", "hierarchia wizualna", "/ˈvɪʒuəl ˈhaɪərɑːki/"],
+    ["colour scheme", "paleta kolorów", "/ˈkʌlə skiːm/"],
+    ["adjust the spacing", "dostosować odstępy", "/əˈdʒʌst ðə ˈspeɪsɪŋ/"],
+    ["side by side", "obok siebie", "/saɪd baɪ saɪd/"],
+    ["line up the elements", "wyrównać elementy", "/laɪn ʌp ði ˈelɪmənts/"],
+    ["responsive layout", "układ dopasowujący się do ekranu", "/rɪˈspɒnsɪv ˈleɪaʊt/"],
+    ["screen reader", "czytnik ekranu", "/skriːn ˈriːdə/"],
+    ["keyboard shortcut", "skrót klawiaturowy", "/ˈkiːbɔːd ˈʃɔːtkʌt/"],
+    ["drop-down menu", "menu rozwijane", "/ˈdrɒp daʊn ˈmenjuː/"],
+    ["tick a box", "zaznaczyć pole", "/tɪk ə bɒks/"],
+    ["fill in a form", "wypełnić formularz", "/fɪl ɪn ə fɔːm/"],
+    ["scroll down", "przewinąć w dół", "/skrəʊl daʊn/"],
+    ["zoom in on an image", "powiększyć fragment obrazu", "/zuːm ɪn ɒn ən ˈɪmɪdʒ/"],
+    ["drag and drop", "przeciągnąć i upuścić", "/dræɡ ən drɒp/"],
+    ["crop an image", "przyciąć obraz", "/krɒp ən ˈɪmɪdʒ/"],
+    ["resize an image", "zmienić rozmiar obrazu", "/ˌriːˈsaɪz ən ˈɪmɪdʒ/"],
+    ["file format", "format pliku", "/faɪl ˈfɔːmæt/"],
+    ["attach a file", "dołączyć plik", "/əˈtætʃ ə faɪl/"],
+    ["upload a document", "przesłać dokument na serwer", "/ʌpˈləʊd ə ˈdɒkjəmənt/"],
+    ["download an attachment", "pobrać załącznik", "/ˌdaʊnˈləʊd ən əˈtætʃmənt/"],
+    ["unzip a folder", "rozpakować folder", "/ʌnˈzɪp ə ˈfəʊldə/"],
+    ["free up space", "zwolnić miejsce", "/friː ʌp speɪs/"],
+    ["run out of storage", "wyczerpać wolne miejsce na dane", "/rʌn aʊt əv ˈstɔːrɪdʒ/"],
+    ["restore a backup", "przywrócić kopię zapasową", "/rɪˈstɔːr ə ˈbækʌp/"],
+    ["sync across devices", "synchronizować między urządzeniami", "/sɪŋk əˈkrɒs dɪˈvaɪsɪz/"],
+    ["cloud storage", "przechowywanie danych w chmurze", "/klaʊd ˈstɔːrɪdʒ/"],
+    ["default settings", "ustawienia domyślne", "/dɪˈfɔːlt ˈsetɪŋz/"],
+    ["turn on notifications", "włączyć powiadomienia", "/tɜːn ɒn ˌnəʊtɪfɪˈkeɪʃənz/"],
+    ["opt out of tracking", "wyłączyć śledzenie", "/ɒpt aʊt əv ˈtrækɪŋ/"],
+    ["grant access", "przyznać dostęp", "/ɡrɑːnt ˈækses/"],
+    ["privacy settings", "ustawienia prywatności", "/ˈprɪvəsi ˈsetɪŋz/"],
+    ["sign in", "zalogować się", "/saɪn ɪn/"],
+    ["log out", "wylogować się", "/lɒɡ aʊt/"],
+    ["reset a password", "zresetować hasło", "/ˌriːˈset ə ˈpɑːswɜːd/"],
+    ["verify your identity", "potwierdzić swoją tożsamość", "/ˈverɪfaɪ jɔːr aɪˈdentəti/"],
+    ["scan a QR code", "zeskanować kod QR", "/skæn ə ˌkjuːˈɑː kəʊd/"],
+    ["pair a device", "sparować urządzenie", "/peər ə dɪˈvaɪs/"],
+    ["wireless connection", "połączenie bezprzewodowe", "/ˈwaɪələs kəˈnekʃən/"],
+    ["signal strength", "siła sygnału", "/ˈsɪɡnəl streŋθ/"],
+    ["go offline", "przejść w tryb offline", "/ɡəʊ ˈɒflaɪn/"],
+    ["plug in a charger", "podłączyć ładowarkę", "/plʌɡ ɪn ə ˈtʃɑːdʒə/"],
+    ["battery life", "czas pracy na baterii", "/ˈbætəri laɪf/"],
+    ["shut down a computer", "wyłączyć komputer", "/ʃʌt daʊn ə kəmˈpjuːtə/"],
+    ["boot up", "uruchomić się (o komputerze)", "/buːt ʌp/"],
+    ["freeze up", "zawiesić się (o urządzeniu lub programie)", "/friːz ʌp/"],
+    ["error message", "komunikat o błędzie", "/ˈerə ˈmesɪdʒ/"],
+    ["load slowly", "wolno się wczytywać", "/ləʊd ˈsləʊli/"],
+    ["reproduce an error", "odtworzyć błąd", "/ˌriːprəˈdjuːs ən ˈerə/"],
+    ["trace the cause", "ustalić przyczynę", "/treɪs ðə kɔːz/"],
+    ["test a feature", "przetestować funkcję", "/test ə ˈfiːtʃə/"],
+    ["leave a comment", "zostawić komentarz", "/liːv ə ˈkɒment/"],
+    ["review the changes", "przejrzeć zmiany", "/rɪˈvjuː ðə ˈtʃeɪndʒɪz/"],
+    ["undo a change", "cofnąć zmianę", "/ʌnˈduː ə tʃeɪndʒ/"],
+    ["roll back to an earlier version", "wrócić do wcześniejszej wersji", "/rəʊl bæk tə ən ˈɜːliə ˈvɜːʃən/"],
+    ["release notes", "informacje o zmianach w wydaniu", "/rɪˈliːs nəʊts/"],
+    ["phase out an old feature", "stopniowo wycofywać starą funkcję", "/feɪz aʊt ən əʊld ˈfiːtʃə/"],
+    ["keep the software up to date", "dbać o aktualność oprogramowania", "/kiːp ðə ˈsɒftweər ʌp tə deɪt/"]
+  ] },
+  { id: "talk", name: "Codzienne rozmowy i opinie", entries: [
+    ["as far as I know", "o ile wiem", "/əz fɑːr əz aɪ nəʊ/"],
+    ["I see your point", "rozumiem twój punkt widzenia", "/aɪ siː jə pɔɪnt/"],
+    ["that's beside the point", "to nie ma związku z tematem", "/ðæts bɪˈsaɪd ðə pɔɪnt/"],
+    ["make up your mind", "zdecydować się", "/meɪk ʌp jə maɪnd/"],
+    ["catch up with a friend", "spotkać się ze znajomym i pogadać, co słychać", "/kætʃ ʌp wɪð ə frend/"],
+    ["get along with someone", "dogadywać się z kimś", "/ɡet əˈlɒŋ wɪð ˈsʌmwʌn/"],
+    ["it depends on the situation", "to zależy od sytuacji", "/ɪt dɪˈpendz ɒn ðə ˌsɪtʃuˈeɪʃən/"],
+    ["to be fair", "trzeba uczciwie przyznać, że…", "/tə bi feə/"],
+    ["turn down an invitation", "odmówić przyjęcia zaproszenia", "/tɜːn daʊn ən ˌɪnvɪˈteɪʃən/"],
+    ["take something for granted", "uważać coś za oczywiste", "/teɪk ˈsʌmθɪŋ fə ˈɡrɑːntɪd/"],
+    ["speak your mind", "otwarcie powiedzieć, co się myśli", "/spiːk jə maɪnd/"],
+    ["that makes sense", "to ma sens", "/ðæt meɪks sens/"],
+    ["what do you make of it?", "co o tym sądzisz?", "/wɒt dʊ ju meɪk əv ɪt/"],
+    ["if you ask me", "jeśli pytasz mnie o zdanie", "/ɪf ju ɑːsk miː/"],
+    ["from my point of view", "z mojego punktu widzenia", "/frəm maɪ pɔɪnt əv vjuː/"],
+    ["as far as I'm concerned", "jeśli o mnie chodzi", "/əz fɑːr əz aɪm kənˈsɜːnd/"],
+    ["in my experience", "z mojego doświadczenia", "/ɪn maɪ ɪkˈspɪəriəns/"],
+    ["I'm not so sure about that", "nie mam co do tego pewności", "/aɪm nɒt səʊ ʃʊər əˈbaʊt ðæt/"],
+    ["I couldn't agree more", "w pełni się zgadzam", "/aɪ ˈkʊdənt əˈɡriː mɔː/"],
+    ["we'll have to agree to disagree", "musimy pogodzić się z różnicą zdań", "/wiːl hæv tə əˈɡriː tə ˌdɪsəˈɡriː/"],
+    ["you've got a point", "coś w tym jest", "/juːv ɡɒt ə pɔɪnt/"],
+    ["I hadn't thought of that", "nie przyszło mi to do głowy", "/aɪ ˈhædənt θɔːt əv ðæt/"],
+    ["that's a bit of a stretch", "to trochę naciągane", "/ðæts ə bɪt əv ə stretʃ/"],
+    ["I'd rather not say", "wolę nie mówić", "/aɪd ˈrɑːðə nɒt seɪ/"],
+    ["I'd rather stay in", "wolę zostać w domu", "/aɪd ˈrɑːðə steɪ ɪn/"],
+    ["I don't mind either way", "obie opcje mi odpowiadają", "/aɪ dəʊnt maɪnd ˈaɪðə weɪ/"],
+    ["I'm leaning towards it", "skłaniam się ku temu", "/aɪm ˈliːnɪŋ təˈwɔːdz ɪt/"],
+    ["have second thoughts", "zacząć mieć wątpliwości", "/hæv ˌsekənd ˈθɔːts/"],
+    ["change your mind", "zmienić zdanie", "/tʃeɪndʒ jə maɪnd/"],
+    ["give it some thought", "zastanowić się nad tym", "/ɡɪv ɪt səm θɔːt/"],
+    ["sleep on it", "przespać się z decyzją", "/sliːp ɒn ɪt/"],
+    ["weigh up the options", "rozważyć dostępne opcje", "/weɪ ʌp ði ˈɒpʃənz/"],
+    ["jump to conclusions", "wyciągać pochopne wnioski", "/dʒʌmp tə kənˈkluːʒənz/"],
+    ["keep an open mind", "zachować otwarty umysł", "/kiːp ən ˌəʊpən ˈmaɪnd/"],
+    ["look at the bigger picture", "spojrzeć na sprawę szerzej", "/lʊk ət ðə ˌbɪɡə ˈpɪktʃə/"],
+    ["on second thought", "po namyśle", "/ɒn ˌsekənd ˈθɔːt/"],
+    ["to be honest", "szczerze mówiąc", "/tə bi ˈɒnɪst/"],
+    ["generally speaking", "ogólnie rzecz biorąc", "/ˈdʒenərəli ˈspiːkɪŋ/"],
+    ["for the most part", "w przeważającej mierze", "/fə ðə məʊst pɑːt/"],
+    ["all things considered", "biorąc wszystko pod uwagę", "/ɔːl θɪŋz kənˈsɪdəd/"],
+    ["it turns out that", "okazuje się, że", "/ɪt tɜːnz aʊt ðət/"],
+    ["speaking of which", "skoro już o tym mowa", "/ˈspiːkɪŋ əv wɪtʃ/"],
+    ["come to think of it", "jak się nad tym zastanowić", "/kʌm tə θɪŋk əv ɪt/"],
+    ["what I meant was", "chodziło mi o to, że", "/wɒt aɪ ment wəz/"],
+    ["let me put it another way", "ujmę to inaczej", "/let mi pʊt ɪt əˈnʌðə weɪ/"],
+    ["could you be more specific?", "czy możesz powiedzieć dokładniej?", "/kʊd ju bi mɔː spəˈsɪfɪk/"],
+    ["could you run that by me again?", "czy możesz mi to jeszcze raz wyjaśnić?", "/kʊd ju rʌn ðæt baɪ mi əˈɡen/"],
+    ["I didn't catch that", "nie udało mi się dosłyszeć", "/aɪ ˈdɪdənt kætʃ ðæt/"],
+    ["I lost my train of thought", "zgubił mi się wątek", "/aɪ lɒst maɪ treɪn əv θɔːt/"],
+    ["get to the point", "przejść do sedna", "/ɡet tə ðə pɔɪnt/"],
+    ["go off on a tangent", "zboczyć z tematu", "/ɡəʊ ɒf ɒn ə ˈtændʒənt/"],
+    ["change the subject", "zmienić temat", "/tʃeɪndʒ ðə ˈsʌbdʒekt/"],
+    ["hear someone out", "wysłuchać kogoś do końca", "/hɪə ˈsʌmwʌn aʊt/"],
+    ["cut someone off", "przerwać komuś w pół zdania", "/kʌt ˈsʌmwʌn ɒf/"],
+    ["talk something through", "dokładnie coś omówić", "/tɔːk ˈsʌmθɪŋ θruː/"],
+    ["clear something up", "wyjaśnić coś niejasnego", "/klɪə ˈsʌmθɪŋ ʌp/"],
+    ["leave out the details", "pominąć szczegóły", "/liːv aʊt ðə ˈdiːteɪlz/"],
+    ["let someone down", "zawieść kogoś", "/let ˈsʌmwʌn daʊn/"],
+    ["make it up to someone", "wynagrodzić coś komuś", "/meɪk ɪt ʌp tə ˈsʌmwʌn/"],
+    ["make up after an argument", "pogodzić się po kłótni", "/meɪk ʌp ˈɑːftər ən ˈɑːɡjəmənt/"],
+    ["fall out with someone", "pokłócić się z kimś", "/fɔːl aʊt wɪð ˈsʌmwʌn/"],
+    ["take it personally", "wziąć coś do siebie", "/teɪk ɪt ˈpɜːsənəli/"],
+    ["give someone the benefit of the doubt", "założyć, że ktoś miał dobre intencje", "/ɡɪv ˈsʌmwʌn ðə ˈbenɪfɪt əv ðə daʊt/"],
+    ["keep in touch", "pozostać w kontakcie", "/kiːp ɪn tʌtʃ/"],
+    ["run into an old friend", "wpaść na dawnego znajomego", "/rʌn ˈɪntuː ən əʊld frend/"],
+    ["drop by", "wpaść z krótką wizytą", "/drɒp baɪ/"],
+    ["come over for dinner", "wpaść do kogoś na kolację", "/kʌm ˈəʊvə fə ˈdɪnə/"],
+    ["hang out together", "spędzać razem czas na luzie", "/hæŋ aʊt təˈɡeðə/"],
+    ["are you up for it?", "masz na to ochotę?", "/ɑː ju ʌp fər ɪt/"],
+    ["count me in", "piszę się na to", "/kaʊnt mi ɪn/"],
+    ["I'll give it a miss", "tym razem odpuszczę", "/aɪl ɡɪv ɪt ə mɪs/"],
+    ["take a rain check", "przełożyć na inną okazję", "/teɪk ə ˈreɪn tʃek/"],
+    ["something came up", "coś mi wypadło", "/ˈsʌmθɪŋ keɪm ʌp/"],
+    ["I'm running late", "spóźnię się", "/aɪm ˈrʌnɪŋ leɪt/"],
+    ["don't rush on my account", "nie spiesz się ze względu na mnie", "/dəʊnt rʌʃ ɒn maɪ əˈkaʊnt/"],
+    ["it's up to you", "decyzja należy do ciebie", "/ɪts ʌp tə juː/"],
+    ["whatever works for you", "jak ci wygodnie", "/wɒtˈevə wɜːks fə juː/"],
+    ["sounds like a plan", "brzmi jak dobry plan", "/saʊndz laɪk ə plæn/"],
+    ["fingers crossed", "trzymam kciuki", "/ˈfɪŋɡəz krɒst/"],
+    ["no hard feelings", "bez urazy", "/nəʊ hɑːd ˈfiːlɪŋz/"]
+  ] },
+  { id: "health", name: "Zdrowie i styl życia", entries: [
+    ["cut down on sugar", "ograniczyć spożycie cukru", "/kʌt daʊn ɒn ˈʃʊɡə/"],
+    ["work out regularly", "regularnie ćwiczyć", "/wɜːk aʊt ˈreɡjələli/"],
+    ["come down with a cold", "przeziębić się", "/kʌm daʊn wɪð ə kəʊld/"],
+    ["get over an illness", "dojść do siebie po chorobie", "/ɡet ˈəʊvər ən ˈɪlnəs/"],
+    ["feel under the weather", "czuć się kiepsko", "/fiːl ˈʌndə ðə ˈweðə/"],
+    ["book a check-up", "umówić się na badanie kontrolne", "/bʊk ə ˈtʃek ʌp/"],
+    ["stick to a routine", "trzymać się stałego planu", "/stɪk tə ə ruːˈtiːn/"],
+    ["take up a sport", "zacząć uprawiać sport", "/teɪk ʌp ə spɔːt/"],
+    ["get enough sleep", "wysypiać się", "/ɡet ɪˈnʌf sliːp/"],
+    ["build up your stamina", "poprawić swoją wytrzymałość", "/bɪld ʌp jə ˈstæmɪnə/"],
+    ["wind down before bed", "wyciszyć się przed snem", "/waɪnd daʊn bɪˈfɔː bed/"],
+    ["eat a balanced diet", "odżywiać się w zrównoważony sposób", "/iːt ə ˈbælənst ˈdaɪət/"],
+    ["come round after fainting", "odzyskać przytomność po omdleniu", "/kʌm raʊnd ˈɑːftə ˈfeɪntɪŋ/"],
+    ["pass out", "zemdleć", "/pɑːs aʊt/"],
+    ["throw up", "zwymiotować", "/θrəʊ ʌp/"],
+    ["fight off an infection", "zwalczyć infekcję", "/faɪt ɒf ən ɪnˈfekʃən/"],
+    ["shake off a cold", "pozbyć się przeziębienia", "/ʃeɪk ɒf ə kəʊld/"],
+    ["come out in a rash", "dostać wysypki", "/kʌm aʊt ɪn ə ræʃ/"],
+    ["run a temperature", "mieć podwyższoną temperaturę", "/rʌn ə ˈtemprətʃə/"],
+    ["feel light-headed", "mieć zawroty głowy", "/fiːl ˌlaɪt ˈhedɪd/"],
+    ["be short of breath", "mieć duszności", "/bi ʃɔːt əv breθ/"],
+    ["have a sore throat", "mieć ból gardła", "/hæv ə sɔː θrəʊt/"],
+    ["have a blocked nose", "mieć zatkany nos", "/hæv ə blɒkt nəʊz/"],
+    ["lose your appetite", "stracić apetyt", "/luːz jər ˈæpɪtaɪt/"],
+    ["feel run-down", "czuć się osłabionym", "/fiːl ˌrʌn ˈdaʊn/"],
+    ["be on the mend", "wracać do zdrowia", "/bi ɒn ðə mend/"],
+    ["make a full recovery", "w pełni wrócić do zdrowia", "/meɪk ə fʊl rɪˈkʌvəri/"],
+    ["ease the pain", "złagodzić ból", "/iːz ðə peɪn/"],
+    ["wear off", "przestać działać (o leku)", "/weər ɒf/"],
+    ["follow the dosage instructions", "przestrzegać zaleceń dotyczących dawkowania", "/ˈfɒləʊ ðə ˈdəʊsɪdʒ ɪnˈstrʌkʃənz/"],
+    ["side effect", "działanie niepożądane", "/saɪd ɪˈfekt/"],
+    ["over-the-counter medicine", "lek dostępny bez recepty", "/ˌəʊvə ðə ˈkaʊntə ˈmedsən/"],
+    ["get a prescription", "dostać receptę", "/ɡet ə prɪˈskrɪpʃən/"],
+    ["pick up a prescription", "odebrać w aptece lek na receptę", "/pɪk ʌp ə prɪˈskrɪpʃən/"],
+    ["have a blood test", "zrobić badanie krwi", "/hæv ə blʌd test/"],
+    ["check your blood pressure", "zmierzyć sobie ciśnienie krwi", "/tʃek jə blʌd ˈpreʃə/"],
+    ["describe your symptoms", "opisać swoje objawy", "/dɪˈskraɪb jə ˈsɪmptəmz/"],
+    ["medical history", "historia chorób i leczenia", "/ˈmedɪkəl ˈhɪstəri/"],
+    ["get a referral", "dostać skierowanie", "/ɡet ə rɪˈfɜːrəl/"],
+    ["see a specialist", "udać się do specjalisty", "/siː ə ˈspeʃəlɪst/"],
+    ["sprain your ankle", "skręcić kostkę", "/spreɪn jər ˈæŋkəl/"],
+    ["pull a muscle", "naciągnąć mięsień", "/pʊl ə ˈmʌsəl/"],
+    ["twist your knee", "skręcić kolano", "/twɪst jə niː/"],
+    ["put on a plaster", "przykleić plaster", "/pʊt ɒn ə ˈplɑːstə/"],
+    ["heal up", "zagoić się", "/hiːl ʌp/"],
+    ["stay hydrated", "dbać o nawodnienie", "/steɪ haɪˈdreɪtɪd/"],
+    ["drink plenty of water", "pić dużo wody", "/drɪŋk ˈplenti əv ˈwɔːtə/"],
+    ["skip breakfast", "pominąć śniadanie", "/skɪp ˈbrekfəst/"],
+    ["pack a healthy snack", "spakować zdrową przekąskę", "/pæk ə ˈhelθi snæk/"],
+    ["eat out less often", "rzadziej jadać na mieście", "/iːt aʊt les ˈɒfən/"],
+    ["read the nutrition label", "przeczytać tabelę wartości odżywczych", "/riːd ðə njuːˈtrɪʃən ˈleɪbəl/"],
+    ["portion size", "wielkość porcji", "/ˈpɔːʃən saɪz/"],
+    ["whole grains", "pełne ziarna zbóż", "/həʊl ɡreɪnz/"],
+    ["food intolerance", "nietolerancja pokarmowa", "/fuːd ɪnˈtɒlərəns/"],
+    ["watch your salt intake", "kontrolować spożycie soli", "/wɒtʃ jə sɒlt ˈɪnteɪk/"],
+    ["warm up before exercise", "rozgrzać się przed ćwiczeniami", "/wɔːm ʌp bɪˈfɔːr ˈeksəsaɪz/"],
+    ["cool down after exercise", "zwolnić i wyciszyć organizm po ćwiczeniach", "/kuːl daʊn ˈɑːftər ˈeksəsaɪz/"],
+    ["stretch your legs", "rozprostować nogi", "/stretʃ jə leɡz/"],
+    ["go for a brisk walk", "wybrać się na energiczny spacer", "/ɡəʊ fər ə brɪsk wɔːk/"],
+    ["get back into shape", "wrócić do formy", "/ɡet bæk ˈɪntuː ʃeɪp/"],
+    ["keep fit", "dbać o kondycję", "/kiːp fɪt/"],
+    ["catch your breath", "złapać oddech", "/kætʃ jə breθ/"],
+    ["take a rest day", "zrobić sobie dzień przerwy od treningu", "/teɪk ə rest deɪ/"],
+    ["recover from an injury", "wrócić do zdrowia po urazie", "/rɪˈkʌvə frəm ən ˈɪndʒəri/"],
+    ["build strength", "rozwijać siłę", "/bɪld streŋθ/"],
+    ["keep up the pace", "utrzymać tempo", "/kiːp ʌp ðə peɪs/"],
+    ["sleep through the night", "przespać całą noc", "/sliːp θruː ðə naɪt/"],
+    ["drift off to sleep", "powoli zasnąć", "/drɪft ɒf tə sliːp/"],
+    ["lie awake", "leżeć, nie mogąc zasnąć", "/laɪ əˈweɪk/"],
+    ["take a short nap", "uciąć sobie krótką drzemkę", "/teɪk ə ʃɔːt næp/"],
+    ["stay up late", "nie kłaść się spać do późna", "/steɪ ʌp leɪt/"],
+    ["sleep in", "pospać dłużej niż zwykle", "/sliːp ɪn/"],
+    ["catch up on sleep", "odespać zaległości", "/kætʃ ʌp ɒn sliːp/"],
+    ["cut back on screen time", "ograniczyć czas przed ekranem", "/kʌt bæk ɒn skriːn taɪm/"],
+    ["take a breather", "zrobić sobie krótką przerwę", "/teɪk ə ˈbriːðə/"],
+    ["feel overwhelmed", "czuć się przytłoczonym", "/fiːl ˌəʊvəˈwelmd/"],
+    ["cope with stress", "radzić sobie ze stresem", "/kəʊp wɪð stres/"],
+    ["burn out", "doświadczyć wypalenia", "/bɜːn aʊt/"],
+    ["make time for yourself", "znaleźć czas dla siebie", "/meɪk taɪm fə jɔːˈself/"],
+    ["break a bad habit", "pozbyć się złego nawyku", "/breɪk ə bæd ˈhæbɪt/"]
+  ] }
 ];
 const $ = id => document.getElementById(id);
 const card = $("card");
@@ -160,30 +586,62 @@ appURL.search = "";
 appURL.hash = "";
 const canFetch = ["http:", "https:"].includes(appURL.protocol);
 const sw = canFetch ? navigator.serviceWorker : undefined;
-const makeWords = rows => rows.map(([from, to, word, translation]) => ({ from, to, word, translation, known: false }));
+const makeWords = rows => rows.map(([from, to, word, translation, pronunciation = ""]) =>
+  ({ from, to, word, translation, pronunciation, known: false }));
+const builtinRows = set => set.entries.map(entry => ["EN", "PL", ...entry]);
 function firstUnknown(words) {
   return Math.max(0, words.findIndex(word => !word.known));
 }
-function loadStudy() {
+function normalizeStudy(saved) {
+  if (!Array.isArray(saved?.words) || !saved.words.every(word =>
+    word && ["from", "to", "word", "translation"].every(key => typeof word[key] === "string")
+  )) throw new Error("Nieprawidłowy zapis");
+  const words = saved.words.map(word => ({
+    ...word,
+    pronunciation: typeof word.pronunciation === "string" ? word.pronunciation.trim() : "",
+    known: word.known === true
+  }));
+  const cursor = Number.isInteger(saved.cursor) && words[saved.cursor]?.known === false
+    ? saved.cursor : firstUnknown(words);
+  return { words, cursor };
+}
+function restoreBuiltin(set, saved) {
+  if (!saved) return set;
+  const known = new Set(saved.words.filter(word => word.known).map(word => word.word));
+  const words = set.words.map(word => ({ ...word, known: known.has(word.word) }));
+  const current = saved.words[saved.cursor];
+  const cursor = current?.known === false
+    ? words.findIndex(word => word.word === current.word && !word.known)
+    : -1;
+  return { ...set, words, cursor: cursor < 0 ? firstUnknown(words) : cursor };
+}
+function loadLibrary() {
+  const builtins = BUILT_IN_SETS.map(set => ({
+    id: set.id, name: set.name, words: makeWords(builtinRows(set)), cursor: 0
+  }));
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw !== null) {
       const saved = JSON.parse(raw);
-      if (!Array.isArray(saved.words) || !saved.words.every(word =>
-        word && ["from", "to", "word", "translation"].every(key => typeof word[key] === "string")
-      )) throw new Error("Nieprawidłowy zapis");
-      saved.words = saved.words.map(word => ({ ...word, known: word.known === true }));
-      if (!Number.isInteger(saved.cursor) || saved.words[saved.cursor]?.known !== false) {
-        saved.cursor = firstUnknown(saved.words);
+      const restored = new Map(saved.sets.map(set => [set.id, { ...set, ...normalizeStudy(set) }]));
+      const sets = builtins.map(set => restoreBuiltin(set, restored.get(set.id)))
+        .concat(Array.from(restored.values()).filter(set => set.id === "legacy" || set.id.startsWith("excel-")));
+      return { sets, activeId: sets.some(set => set.id === saved.activeId) ? saved.activeId : sets[0].id };
+    }
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy !== null) {
+      const old = normalizeStudy(JSON.parse(legacy));
+      if (old.words.length) {
+        return { sets: [...builtins, { id: "legacy", name: "Poprzedni zestaw", ...old }], activeId: "legacy" };
       }
-      return saved;
     }
   } catch {
     setTimeout(() => toast("Nie udało się odczytać lokalnego zapisu."), 0);
   }
-  return { words: makeWords(DEMO), cursor: 0 };
+  return { sets: builtins, activeId: builtins[0].id };
 }
-let study = loadStudy();
+let library = loadLibrary();
+const activeSet = () => library.sets.find(set => set.id === library.activeId);
 let gesture = null;
 let animating = false;
 let toastTimer;
@@ -200,31 +658,68 @@ function toast(message) {
   $("toast").textContent = message;
   toastTimer = setTimeout(() => { $("toast").hidden = true; }, 4000);
 }
-function saveStudy(next) {
+function saveLibrary(next) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    study = next;
+    library = next;
     return true;
   } catch {
     toast("Nie udało się zapisać zmian. Sprawdź dostępne miejsce i ustawienia przeglądarki.");
     return false;
   }
 }
+function saveStudy(next) {
+  return saveLibrary({
+    ...library,
+    sets: library.sets.map(set => set.id === library.activeId ? { ...set, ...next } : set)
+  });
+}
+const countKnown = set => set.words.filter(word => word.known).length;
+function renderSets() {
+  const list = $("set-list");
+  const buttons = library.sets.map(set => {
+    const item = document.createElement("li");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("aria-pressed", String(set.id === library.activeId));
+    const name = document.createElement("span");
+    name.className = "set-name";
+    name.textContent = set.name;
+    const progress = document.createElement("span");
+    progress.className = "set-progress";
+    progress.textContent = "Znam: " + countKnown(set) + "/" + set.words.length;
+    button.append(name, progress);
+    button.onclick = () => {
+      if (set.id !== library.activeId && !saveLibrary({ ...library, activeId: set.id })) return;
+      settings.close();
+      render();
+    };
+    item.append(button);
+    return item;
+  });
+  list.replaceChildren(...buttons);
+}
 function render() {
-  const known = study.words.filter(word => word.known).length;
+  const study = activeSet();
+  const known = countKnown(study);
   const remaining = study.words.length - known;
+  $("active-set").textContent = study.name;
+  $("managed-set").textContent = study.name;
   $("known").textContent = known;
   $("remaining").textContent = remaining;
   $("progress").max = study.words.length || 1;
   $("progress").value = known;
   $("reset").disabled = !study.words.length;
-  $("clear").disabled = !study.words.length;
+  $("clear").hidden = BUILT_IN_SETS.some(set => set.id === study.id);
+  renderSets();
   $("card").hidden = $("footer").hidden = remaining === 0;
   $("empty").hidden = remaining > 0;
   if (remaining) {
     const current = study.words[study.cursor];
     $("languages").textContent = current.from + " → " + current.to;
     $("word").textContent = current.word;
+    $("pronunciation").textContent = current.pronunciation;
+    $("pronunciation").hidden = !current.pronunciation;
     $("translation").textContent = current.translation;
     $("word").title = current.word;
     $("translation").title = current.translation;
@@ -236,15 +731,11 @@ function render() {
   $("empty-text").textContent = complete ? "Opanowane słowa: " + known : "Zaimportuj zestaw z Excela, aby zacząć naukę.";
   $("empty-action").textContent = complete ? "Powtórz cały zestaw od nowa" : "Przejdź do importu";
 }
-function replaceWords(words) {
-  if (saveStudy({ words, cursor: 0 })) {
-    render();
-    return true;
-  }
-  return false;
-}
 function resetStudy() {
-  return replaceWords(study.words.map(word => ({ ...word, known: false })));
+  const words = activeSet().words.map(word => ({ ...word, known: false }));
+  if (!saveStudy({ words, cursor: 0 })) return false;
+  render();
+  return true;
 }
 function moveCard(dx, dy, direction) {
   card.style.transform = "translate(" + dx + "px," + dy + "px) rotate(" + Math.max(-16, Math.min(16, dx / 15)) + "deg)";
@@ -259,6 +750,7 @@ function clearGesture() {
 }
 function answer(known) {
   if (animating || card.hidden || settings.open) return;
+  const study = activeSet();
   const words = study.words.slice();
   if (known) words[study.cursor] = { ...words[study.cursor], known: true };
   const next = words.findIndex((word, index) => index > study.cursor && !word.known);
@@ -317,12 +809,19 @@ $("badge").onclick = () => {
   settings.showModal();
   $("updates").scrollIntoView({ block: "nearest" });
 };
-$("empty-action").onclick = () => study.words.length ? resetStudy() : settings.showModal();
+$("empty-action").onclick = () => activeSet().words.length ? resetStudy() : settings.showModal();
 $("reset").onclick = () => {
-  if (confirm("Przywrócić wszystkie słowa do puli nauki?") && resetStudy()) toast("Postęp zresetowany.");
+  if (confirm("Zresetować postęp zestawu „" + activeSet().name + "”?") && resetStudy()) toast("Postęp zestawu zresetowany.");
 };
 $("clear").onclick = () => {
-  if (confirm("Usunąć cały zestaw słów i jego postęp?") && replaceWords([])) toast("Baza słów jest pusta.");
+  const set = activeSet();
+  if (BUILT_IN_SETS.some(builtin => builtin.id === set.id)) return;
+  if (!confirm("Usunąć zestaw „" + set.name + "” i jego postęp?")) return;
+  const sets = library.sets.filter(item => item.id !== set.id);
+  if (saveLibrary({ sets, activeId: sets[0].id })) {
+    render();
+    toast("Zestaw usunięty.");
+  }
 };
 
 function loadExcel() {
@@ -364,12 +863,12 @@ function readRows(XLSX, buffer) {
   if (!sheet?.["!ref"]) return { rows: [], skipped: 0 };
   const range = XLSX.utils.decode_range(sheet["!ref"]);
   range.s.c = 0;
-  range.e.c = 3;
+  range.e.c = 4;
   const values = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: "", blankrows: false, range });
-  const candidates = values.map(row => Array.from({ length: 4 }, (_, index) => String(row[index] ?? "").trim()))
+  const candidates = values.map(row => Array.from({ length: 5 }, (_, index) => String(row[index] ?? "").trim()))
     .filter(row => row.some(Boolean));
   if (candidates.length && headerRow(candidates[0])) candidates.shift();
-  const rows = candidates.filter(row => row.every(Boolean));
+  const rows = candidates.filter(row => row.slice(0, 4).every(Boolean));
   return { rows, skipped: candidates.length - rows.length };
 }
 function importStatus(message) {
@@ -394,15 +893,21 @@ $("file").onchange = event => {
     try { result = readRows(XLSX, await file.arrayBuffer()); }
     catch { throw new Error("Nie można odczytać skoroszytu. Sprawdź, czy plik jest poprawnym plikiem Excel."); }
     if (!result.rows.length) throw new Error("W pierwszym arkuszu nie znaleziono wierszy z kompletem czterech pól.");
-    if (replaceWords(makeWords(result.rows))) {
+    const id = "excel-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+    const name = file.name.replace(/\.(xlsx|xls)$/i, "").trim() || "Zestaw z Excela";
+    const set = { id, name, words: makeWords(result.rows), cursor: 0 };
+    if (saveLibrary({ sets: [...library.sets, set], activeId: id })) {
+      render();
       importStatus("Zaimportowano słowa: " + result.rows.length + "." + (result.skipped ? " Pominięto niepełne wiersze: " + result.skipped + "." : ""));
     } else importStatus("Nie udało się zapisać zestawu.");
   });
 };
 $("template").onclick = () => void excelAction(async XLSX => {
   const book = XLSX.utils.book_new();
-  const sheet = XLSX.utils.aoa_to_sheet([["Język słowa", "Język tłumaczenia", "Słowo", "Tłumaczenie"], ...DEMO]);
-  sheet["!cols"] = [{ wch: 16 }, { wch: 21 }, { wch: 19 }, { wch: 24 }];
+  const sample = builtinRows(BUILT_IN_SETS[0]).slice(0, 4);
+  sample[3][4] = "";
+  const sheet = XLSX.utils.aoa_to_sheet([["Język słowa", "Język tłumaczenia", "Słowo", "Tłumaczenie", "Transkrypcja"], ...sample]);
+  sheet["!cols"] = [{ wch: 16 }, { wch: 21 }, { wch: 27 }, { wch: 38 }, { wch: 35 }];
   XLSX.utils.book_append_sheet(book, sheet, "Fiszki");
   XLSX.writeFile(book, "ZnamTo-szablon.xlsx");
   importStatus("Szablon jest gotowy do pobrania.");
