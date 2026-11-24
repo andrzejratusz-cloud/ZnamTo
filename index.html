@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ZnamTo">
+<meta id="child-theme-color" name="theme-color" content="#e8f7ff" media="not all">
 <meta name="theme-color" content="#14121c" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f8f6ff" media="(prefers-color-scheme: light)">
 <title>ZnamTo — Fiszki</title>
@@ -86,46 +87,136 @@ section p{margin:6px 0 12px}
 summary{cursor:pointer;font-weight:700;padding:10px 0}
 .toast{position:fixed;z-index:3;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);background:var(--ink);color:var(--bg);padding:10px 15px;border-radius:12px}
 @media(max-height:460px){.hint{display:none}.word{font-size:clamp(22px,6dvh,38px)}.translation{font-size:clamp(16px,4.5dvh,23px)}}
+.profiles{display:flex;gap:6px;padding:4px;border-radius:16px;background:var(--track)}
+.profiles button{flex:1;min-width:0;padding:6px;font-size:13px;background:transparent;border-color:transparent}
+.profiles button[aria-pressed="true"]{background:var(--panel);border-color:var(--line);color:var(--accent)}
+.child-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.stars{margin:0;padding:6px 10px;border-radius:24px;background:#fff0a0;color:#633a05;font-weight:800;font-variant-numeric:tabular-nums}
+.mascot{display:block;flex:none;width:42px;height:42px}
+.card-heading{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.coach{display:flex;align-items:center;gap:4px;margin-left:auto}
+.coach span{background:#fff;border-radius:16px;padding:4px 8px;color:#394075;font-size:12px;font-weight:800}
+.child-mode{color-scheme:light;--bg:#e8f7ff;--panel:#fff;--ink:#23365b;--muted:#43577b;--line:#bddcff;--accent:#324f9d;--track:#c8e7ff;--yes:#14593c;--yesbg:#a9efc9;--no:#792a29;--nobg:#ffd1c4;font-family:Nunito,ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif;background:radial-gradient(circle at 12% 0%,#fff3ad,transparent 50%),var(--bg)}
+.child-mode .app{gap:clamp(7px,1.65dvh,16px)}
+.child-mode .brand{color:#243d7a}
+.child-mode .brand img{display:none}
+.child-mode button,.child-mode dialog{border-radius:24px}
+.child-mode button{font-weight:800;box-shadow:0 3px 0 var(--line)}
+.child-mode button:not(:disabled):active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.child-mode .primary{background:#ffdb76;color:#443011;box-shadow:0 3px 0 #dca547}
+.child-mode .no{box-shadow:0 4px 0 #eb9f8e}
+.child-mode .yes{box-shadow:0 4px 0 #70cfa0}
+.child-mode .stage:has(.card:not([hidden]))::before{display:none}
+.child-mode .card{border-radius:24px;padding:clamp(9px,3vw,20px);color:var(--ink);background:linear-gradient(155deg,#fff8ce,#efffff 72%);border:2px solid #fff;box-shadow:0 6px 0 #9ac9ef,0 10px 23px #243d7a24}
+.child-mode .card[data-direction="yes"]{box-shadow:0 0 30px #39ce86a0}
+.child-mode .card[data-direction="no"]{box-shadow:0 0 30px #ff775ca0}
+.child-mode .languages{background:#d7edff;color:#274785;border:0}
+.swipe-label{z-index:1}
+.child-mode .translation,.child-mode .pronunciation{color:var(--muted)}
+.child-mode .rule{background:#a3c8ec;margin:clamp(3px,1dvh,9px) auto}
+.child-mode .words{display:grid;justify-items:center;padding:3px 0;align-content:center}
+.word-emoji{font-size:clamp(32px,8dvh,68px);line-height:1.15;margin-bottom:4px}
+.word-example{margin:4px 0 0;color:#43577b;font-size:clamp(12px,3.6vw,16px);font-style:italic}
+.speak{margin-top:8px;min-height:48px;background:#d7edff;color:#274785}
+.child-mode .empty{background:#fff9dc;border-color:#fff;box-shadow:0 4px 0 #a9d7f5}
+.grade-tabs{display:flex;flex-wrap:wrap;gap:7px;margin:6px 0 15px}
+.grade-tabs button{flex:1;padding-inline:8px;white-space:nowrap}
+.grade-tabs button[aria-pressed="true"]{background:#ffdb76;color:#443011;border-color:#e6bb59}
+.school-topics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.school-topics button{width:100%;height:100%;display:grid;justify-items:center;align-content:start;gap:3px;padding:10px 5px;background:#e1f5ff;overflow-wrap:anywhere}
+.school-topics li:nth-child(3n+2) button{background:#d4f8e7}
+.school-topics li:nth-child(3n+3) button{background:#ffebd7}
+.school-topics button[aria-pressed="true"]{border:2px solid var(--accent)}
+.topic-icon{font-size:26px}
+.confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:24px;z-index:2}
+.confetti i{position:absolute;top:-16px;width:9px;height:13px;border-radius:3px;background:var(--piece-color);animation:confetti-fall 1.35s ease-in var(--delay) both}
+@keyframes confetti-fall{to{transform:translate(var(--drift),60dvh) rotate(620deg);opacity:0}}
+@media(max-height:550px){.child-mode .coach .mascot{width:30px;height:30px}.child-mode .speak{margin-top:4px}.word-emoji{font-size:clamp(24px,7dvh,40px)}}
+@media(max-height:440px) and (orientation:landscape){
+  .child-mode .child-tools{position:absolute;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);margin:0}
+  .child-mode .app{gap:5px}.child-mode .card{grid-template-columns:auto 1fr;grid-template-rows:minmax(0,1fr);gap:10px}
+  .child-mode .card-heading{justify-content:center;align-items:start;flex-direction:column}
+  .child-mode .coach{margin-left:0}.child-mode .words{grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:2px 8px}
+  .child-mode .word-emoji{grid-column:1;grid-row:1 / span 4}.child-mode .speak{grid-column:3;grid-row:1 / span 4}
+  .child-mode .word,.child-mode .translation,.child-mode .pronunciation,.child-mode .word-example{grid-column:2;margin:0}
+  .child-mode .rule{display:none}.child-mode .actions button{min-height:42px}
+}
+@media(prefers-reduced-motion:reduce){.confetti{display:none}}
 @media(prefers-reduced-motion:reduce){.card{transition:none}}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="fox" viewBox="0 0 72 72">
+    <path d="M13 37 9 10q-1-5 4-3l23 13L59 7q5-2 4 3l-4 27Z" fill="#ee793c" stroke="#9b4828" stroke-width="2" stroke-linejoin="round"/>
+    <path d="m15 15 4 18 12-8Zm42 0-4 18-12-8Z" fill="#ffbd92"/>
+    <path d="M8 37q8-20 28-20t28 20q6 12-3 18L36 68 11 55q-9-6-3-18Z" fill="#ff9651" stroke="#9b4828" stroke-width="2"/>
+    <path d="M10 42q15-7 26 7 11-14 26-7 3 9-5 13L36 66 15 55q-8-4-5-13Z" fill="#fff0cd"/>
+    <path d="M21 38q3-4 6 0m18 0q3-4 6 0m-21 16q6 7 12 0" fill="none" stroke="#39243d" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M32 47q4-3 8 0l-4 5Z" fill="#39243d"/><ellipse cx="17" cy="45" rx="4" ry="2.4" fill="#ff967e"/><ellipse cx="55" cy="45" rx="4" ry="2.4" fill="#ff967e"/>
+  </symbol>
+</svg>
 <main class="app">
   <header>
-    <div class="brand-group"><h1 class="brand"><img id="brand-icon" alt="" width="36" height="36">ZnamTo</h1><p id="active-set" class="active-set"></p></div>
+    <div class="brand-group"><h1 class="brand"><img id="brand-icon" alt="" width="36" height="36"><svg id="brand-mascot" class="mascot" aria-hidden="true" hidden><use href="#fox"/></svg>ZnamTo</h1><p id="active-set" class="active-set"></p></div>
     <div class="top-actions">
       <button id="badge" class="badge" hidden>Nowa wersja</button>
       <button id="settings-open" class="gear" aria-label="Ustawienia" title="Ustawienia">⚙</button>
     </div>
   </header>
+  <nav class="profiles" aria-label="Tryb nauki">
+    <button id="mode-standard" type="button" aria-pressed="true">Tryb standardowy</button>
+    <button id="mode-child" type="button" aria-pressed="false">Nauka dziecka</button>
+  </nav>
   <div>
+    <div id="child-tools" class="child-tools" hidden>
+      <button id="school-open" class="primary" type="button">Zmień temat</button>
+      <p class="stars" role="status">⭐ <strong id="star-count">0</strong> w tej sesji</p>
+    </div>
     <div class="stats"><span>Znam: <strong id="known">0</strong></span><span>Do nauki: <strong id="remaining">0</strong></span></div>
     <progress id="progress" value="0" max="1" aria-label="Postęp nauki"></progress>
   </div>
   <div class="stage">
     <article id="card" class="card" aria-label="Fiszka" hidden>
-      <span id="languages" class="languages"></span>
+      <div class="card-heading">
+        <span id="languages" class="languages"></span>
+        <div id="coach" class="coach" hidden><span id="coach-text">Spróbujmy dalej!</span><svg class="mascot" aria-hidden="true"><use href="#fox"/></svg></div>
+      </div>
       <span id="swipe-label" class="swipe-label" hidden></span>
-      <div class="words" aria-live="polite"><h2 id="word" class="word"></h2><p id="pronunciation" class="pronunciation" hidden></p><hr class="rule"><p id="translation" class="translation"></p></div>
+      <div class="words">
+        <span id="word-emoji" class="word-emoji" aria-hidden="true" hidden></span>
+        <h2 id="word" class="word" aria-live="polite"></h2><p id="pronunciation" class="pronunciation" hidden></p><hr class="rule"><p id="translation" class="translation"></p>
+        <p id="word-example" class="word-example" lang="en" hidden></p>
+        <button id="speak" class="speak" type="button" hidden><span aria-hidden="true">🔊</span> Posłuchaj</button>
+      </div>
     </article>
     <div id="empty" class="empty" hidden>
       <span id="empty-mark" class="empty-mark" aria-hidden="true"></span>
       <h2 id="empty-title"></h2><p id="empty-text"></p>
       <button id="empty-action" class="primary"></button>
     </div>
+    <div id="confetti" class="confetti" aria-hidden="true"></div>
   </div>
   <footer id="footer" hidden>
     <div class="actions"><button id="no" class="no">✕ &nbsp; Nie znam</button><button id="yes" class="yes">✓ &nbsp; Znam</button></div>
     <p class="hint">Możesz też przesunąć kartę w lewo lub w prawo</p>
   </footer>
 </main>
+<dialog id="school-picker" aria-labelledby="school-title">
+  <div class="dialog-head"><svg class="mascot" aria-hidden="true"><use href="#fox"/></svg><h2 id="school-title">Wybierz temat</h2><form method="dialog"><button aria-label="Zamknij wybór tematu">✕</button></form></div>
+  <div class="dialog-body">
+    <div id="grade-tabs" class="grade-tabs" role="group" aria-label="Klasy"></div>
+    <ul id="school-topics" class="school-topics"></ul>
+    <p id="school-empty" hidden>Brak zestawów w tej grupie. Wybierz inne klasy lub dodaj zestaw w Ustawieniach.</p>
+  </div>
+</dialog>
 <dialog id="settings" aria-labelledby="settings-title">
   <div class="dialog-head"><h2 id="settings-title">Ustawienia</h2><form method="dialog"><button aria-label="Zamknij ustawienia">✕</button></form></div>
   <div class="dialog-body">
     <section aria-labelledby="sets-heading">
       <h3 id="sets-heading">Zestawy słówek</h3>
       <div class="set-filters">
-        <label>Poziom<select id="level-filter"><option value="">Wszystkie</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option></select></label>
+        <label><span id="level-label">Poziom</span><select id="level-filter"><option value="">Wszystkie</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option></select></label>
         <label>Kategoria<select id="category-filter"><option value="">Wszystkie</option></select></label>
       </div>
       <div class="level-progress">
@@ -142,6 +233,7 @@ summary{cursor:pointer;font-weight:700;padding:10px 0}
     <section>
       <h3>Import z Excela</h3>
       <p>W pierwszym arkuszu wpisz język słowa, język tłumaczenia, słowo i tłumaczenie. Transkrypcję możesz wpisać w piątej kolumnie. Nagłówek jest opcjonalny. Każdy import tworzy nowy zestaw.</p>
+      <p>Aby oznaczyć zestaw jako szkolny, użyj w szóstej kolumnie nagłówka „Klasy” i wpisz ten sam zakres przy każdej fiszce: 1–3, 4–6 albo 7–8. Możesz dodać emoji i przykład w kolumnach 7 i 8.</p>
       <div class="controls"><button id="choose" class="primary">Wybierz plik Excel</button><button id="template">Pobierz szablon .xlsx</button><button id="export">Eksportuj aktywny zestaw .xlsx</button></div>
       <input id="file" type="file" accept=".xls,.xlsx" hidden>
       <p id="import-status" role="status" hidden></p>
@@ -167,8 +259,13 @@ summary{cursor:pointer;font-weight:700;padding:10px 0}
 <div id="toast" class="toast" role="status" hidden></div>
 <script id="app-script">
 "use strict";
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "2.0.0";
 const RELEASE_NOTES = [
+  { version: "2.0.0", date: "2026-11-24", items: [
+    "Tryb Nauka dziecka z motywem kreskówkowym, liskiem, gwiazdkami i konfetti.",
+    "183 szkolne fiszki z emoji, podziałem na klasy i przykładowymi zdaniami dla klas 4–8.",
+    "Lektor angielskiej wymowy i obsługa oznaczonych zestawów szkolnych z Excela."
+  ] },
   { version: "1.3.0", date: "2026-11-24", items: [
     "38 zestawów A1–C2 z filtrowaniem według poziomu i kategorii oraz podsumowaniem postępu.",
     "Usuwanie pojedynczych zestawów, kategorii i poziomów oraz eksport aktywnego zestawu do Excela."
@@ -1466,6 +1563,214 @@ const CURRICULUM = [
     ["clutch at straws", "chwytać się nikłej nadziei", "/klʌtʃ ət strɔːz/"]
   ] }
 ];
+const GRADES = ["1–3", "4–6", "7–8"];
+const SCHOOL_CURRICULUM = [
+  { id: "animals", grade: "1–3", category: "Zwierzęta", icon: "🐶", entries: [
+    ["dog", "pies", "🐶"],
+    ["cat", "kot", "🐱"],
+    ["hamster", "chomik", "🐹"],
+    ["rabbit", "królik", "🐰"],
+    ["horse", "koń", "🐴"],
+    ["cow", "krowa", "🐮"],
+    ["pig", "świnia", "🐷"],
+    ["sheep", "owca", "🐑"],
+    ["duck", "kaczka", "🦆"],
+    ["lion", "lew", "🦁"],
+    ["elephant", "słoń", "🐘"],
+    ["monkey", "małpa", "🐒"],
+    ["crocodile", "krokodyl", "🐊"],
+    ["owl", "sowa", "🦉"],
+    ["fox", "lis", "🦊"]
+  ] },
+  { id: "food", grade: "1–3", category: "Jedzenie i picie", icon: "🍎", entries: [
+    ["apple", "jabłko", "🍎"],
+    ["banana", "banan", "🍌"],
+    ["bread", "chleb", "🍞"],
+    ["cheese", "ser", "🧀"],
+    ["milk", "mleko", "🥛"],
+    ["water", "woda", "💧"],
+    ["egg", "jajko", "🥚"],
+    ["sandwich", "kanapka", "🥪"],
+    ["ice cream", "lody", "🍦"],
+    ["cake", "ciasto", "🍰"],
+    ["strawberry", "truskawka", "🍓"],
+    ["carrot", "marchewka", "🥕"],
+    ["grapes", "winogrona", "🍇"],
+    ["rice", "ryż", "🍚"],
+    ["orange juice", "sok pomarańczowy", "🧃"]
+  ] },
+  { id: "school", grade: "1–3", category: "Szkoła i przybory", icon: "✏️", entries: [
+    ["school", "szkoła", "🏫"],
+    ["school bag", "plecak szkolny", "🎒"],
+    ["pen", "długopis", "🖊️"],
+    ["pencil", "ołówek", "✏️"],
+    ["rubber", "gumka do ścierania", "✏️"],
+    ["ruler", "linijka", "📏"],
+    ["book", "książka", "📘"],
+    ["desk", "ławka szkolna", "🪑"],
+    ["chair", "krzesło", "🪑"],
+    ["teacher", "nauczyciel lub nauczycielka", "🧑‍🏫"],
+    ["classroom", "sala lekcyjna", "🏫"],
+    ["notebook", "zeszyt", "📓"],
+    ["scissors", "nożyczki", "✂️"],
+    ["glue", "klej", "🧴"],
+    ["paintbrush", "pędzel", "🖌️"]
+  ] },
+  { id: "body", grade: "1–3", category: "Ciało i ubrania", icon: "👕", entries: [
+    ["head", "głowa", "🙂"],
+    ["eyes", "oczy", "👀"],
+    ["ears", "uszy", "👂"],
+    ["mouth", "usta", "👄"],
+    ["nose", "nos", "👃"],
+    ["hands", "dłonie", "🙌"],
+    ["legs", "nogi", "🦵"],
+    ["feet", "stopy", "🦶"],
+    ["teeth", "zęby", "🦷"],
+    ["T-shirt", "koszulka", "👕"],
+    ["trousers", "spodnie", "👖"],
+    ["shoes", "buty", "👟"],
+    ["jacket", "kurtka", "🧥"],
+    ["hat", "kapelusz", "👒"],
+    ["socks", "skarpetki", "🧦"]
+  ] },
+  { id: "home", grade: "1–3", category: "Dom i rodzina", icon: "🏡", entries: [
+    ["house", "dom", "🏡"],
+    ["bedroom", "sypialnia", "🛏️"],
+    ["kitchen", "kuchnia", "🍳"],
+    ["bathroom", "łazienka", "🛁"],
+    ["bed", "łóżko", "🛏️"],
+    ["window", "okno", "🪟"],
+    ["door", "drzwi", "🚪"],
+    ["garden", "ogród", "🌷"],
+    ["mum", "mama", "👩"],
+    ["dad", "tata", "👨"],
+    ["sister", "siostra", "👧"],
+    ["brother", "brat", "👦"],
+    ["grandma", "babcia", "👵"],
+    ["grandpa", "dziadek", "👴"],
+    ["baby", "niemowlę", "👶"]
+  ] },
+  { id: "time", grade: "1–3", category: "Kolory, liczby i czas", icon: "🌈", entries: [
+    ["red", "czerwony", "🔴"],
+    ["blue", "niebieski", "🔵"],
+    ["green", "zielony", "🟢"],
+    ["yellow", "żółty", "🟡"],
+    ["orange", "pomarańczowy", "🟠"],
+    ["purple", "fioletowy", "🟣"],
+    ["black", "czarny", "⚫"],
+    ["white", "biały", "⚪"],
+    ["one", "jeden", "1️⃣"],
+    ["two", "dwa", "2️⃣"],
+    ["three", "trzy", "3️⃣"],
+    ["four", "cztery", "4️⃣"],
+    ["five", "pięć", "5️⃣"],
+    ["six", "sześć", "6️⃣"],
+    ["seven", "siedem", "7️⃣"],
+    ["eight", "osiem", "8️⃣"],
+    ["nine", "dziewięć", "9️⃣"],
+    ["ten", "dziesięć", "🔟"],
+    ["Monday", "poniedziałek", "📅"],
+    ["Tuesday", "wtorek", "📅"],
+    ["Wednesday", "środa", "📅"],
+    ["Thursday", "czwartek", "📅"],
+    ["Friday", "piątek", "📅"],
+    ["Saturday", "sobota", "📅"],
+    ["Sunday", "niedziela", "📅"],
+    ["spring", "wiosna", "🌷"],
+    ["summer", "lato", "☀️"],
+    ["autumn", "jesień", "🍂"],
+    ["winter", "zima", "❄️"]
+  ] },
+  { id: "actions", grade: "1–3", category: "Czasowniki i czynności", icon: "🏃", entries: [
+    ["run", "biegać", "🏃"],
+    ["jump", "skakać", "🤸"],
+    ["swim", "pływać", "🏊"],
+    ["fly", "latać", "🪽"],
+    ["read", "czytać", "📖"],
+    ["write", "pisać", "✍️"],
+    ["sing", "śpiewać", "🎤"],
+    ["dance", "tańczyć", "💃"],
+    ["play", "bawić się", "🧸"],
+    ["eat", "jeść", "🍽️"],
+    ["drink", "pić", "🥤"],
+    ["sleep", "spać", "😴"],
+    ["walk", "chodzić", "🚶"],
+    ["sit down", "usiąść", "🪑"],
+    ["draw", "rysować", "🎨"]
+  ] },
+  { id: "jobs", grade: "4–6", category: "Zawody i miejsca", icon: "🚒", entries: [
+    ["firefighter", "strażak lub strażaczka", "🚒", "A firefighter helps put out fires."],
+    ["vet", "weterynarz lub weterynarka", "🐾", "The vet checked my dog."],
+    ["doctor", "lekarz lub lekarka", "🩺", "The doctor asked me to rest."],
+    ["nurse", "pielęgniarz lub pielęgniarka", "🏥", "The nurse brought me some water."],
+    ["cook", "kucharz lub kucharka", "🧑‍🍳", "The cook made a vegetable soup."],
+    ["farmer", "rolnik lub rolniczka", "🧑‍🌾", "The farmer grows potatoes."],
+    ["pilot", "pilot lub pilotka", "🧑‍✈️", "The pilot spoke to the passengers."],
+    ["mechanic", "mechanik lub mechaniczka", "🔧", "A mechanic fixed our car."],
+    ["librarian", "bibliotekarz lub bibliotekarka", "📚", "The librarian helped me find a book."],
+    ["shop assistant", "sprzedawca lub sprzedawczyni", "🛍️", "I asked the shop assistant for help."],
+    ["police officer", "policjant lub policjantka", "👮", "The police officer showed us the way."],
+    ["artist", "artysta lub artystka", "🎨", "The artist painted a big picture."],
+    ["bakery", "piekarnia", "🥐", "We buy rolls at the bakery."],
+    ["library", "biblioteka", "📚", "I borrowed a book from the library."],
+    ["post office", "poczta", "🏤", "I sent a postcard from the post office."],
+    ["hospital", "szpital", "🏥", "We visited Grandpa in hospital."]
+  ] },
+  { id: "nature", grade: "4–6", category: "Pogoda i przyroda", icon: "⛈️", entries: [
+    ["thunderstorm", "burza z piorunami", "⛈️", "We stayed inside during the thunderstorm."],
+    ["lightning", "błyskawica", "⚡", "I saw lightning from my window."],
+    ["cloudy", "pochmurno", "☁️", "It was cloudy in the morning."],
+    ["windy", "wietrznie", "🌬️", "It is too windy for a picnic."],
+    ["fog", "mgła", "🌫️", "We couldn't see the hills through the fog."],
+    ["rainbow", "tęcza", "🌈", "A rainbow appeared after the rain."],
+    ["temperature", "temperatura", "🌡️", "The temperature dropped at night."],
+    ["forest", "las", "🌲", "We walked through the forest."],
+    ["river", "rzeka", "🏞️", "A small river runs past our house."],
+    ["lake", "jezioro", "🛶", "We went swimming in the lake."],
+    ["mountain", "góra", "⛰️", "We climbed a small mountain."],
+    ["island", "wyspa", "🏝️", "They took a boat to the island."],
+    ["beach", "plaża", "🏖️", "We found shells on the beach."],
+    ["waterfall", "wodospad", "💦", "The waterfall was very loud."],
+    ["butterfly", "motyl", "🦋", "A butterfly landed on the flower."],
+    ["hedgehog", "jeż", "🦔", "We saw a hedgehog in the garden."]
+  ] },
+  { id: "feelings", grade: "7–8", category: "Emocje i relacje", icon: "💬", entries: [
+    ["excited", "podekscytowany", "🤩", "I'm excited about our school trip."],
+    ["disappointed", "rozczarowany", "😞", "I was disappointed when the match was cancelled."],
+    ["worried", "zmartwiony", "😟", "I'm worried about losing my keys."],
+    ["relieved", "odczuwający ulgę", "😌", "I felt relieved when I found my phone."],
+    ["proud", "dumny", "😊", "I'm proud of my little brother."],
+    ["embarrassed", "zakłopotany", "😳", "She felt embarrassed when she forgot his name."],
+    ["surprised", "zaskoczony", "😮", "We were surprised by the good news."],
+    ["bored", "znudzony", "🥱", "I get bored on long bus rides."],
+    ["curious", "ciekawy", "🤔", "I'm curious about how it works."],
+    ["lonely", "samotny", "😔", "He felt lonely on his first day at school."],
+    ["calm down", "uspokoić się", "🧘", "Take a deep breath and try to calm down."],
+    ["cheer someone up", "poprawić komuś humor", "🌻", "I told a joke to cheer her up."],
+    ["get along", "dogadywać się", "🤝", "I get along well with my classmates."],
+    ["apologise", "przeprosić", "🙏", "I need to apologise for being late."],
+    ["keep a promise", "dotrzymać obietnicy", "🤝", "It's important to keep a promise."],
+    ["ask for advice", "poprosić o radę", "💬", "I asked my sister for advice."]
+  ] },
+  { id: "transport", grade: "7–8", category: "Transport i sport", icon: "🚲", entries: [
+    ["underground", "metro", "🚇", "We took the underground to the museum."],
+    ["bicycle", "rower", "🚲", "I ride my bicycle to school."],
+    ["helmet", "kask", "⛑️", "Always wear a helmet when you cycle."],
+    ["pedestrian crossing", "przejście dla pieszych", "🚸", "We waited at the pedestrian crossing."],
+    ["platform", "peron", "🚉", "Our train leaves from platform three."],
+    ["timetable", "rozkład jazdy", "🗓️", "I checked the bus timetable."],
+    ["change trains", "przesiąść się do innego pociągu", "🚆", "We have to change trains in the city."],
+    ["miss the bus", "spóźnić się na autobus", "🚌", "Hurry up or we'll miss the bus."],
+    ["seat belt", "pas bezpieczeństwa", "🚗", "Please fasten your seat belt."],
+    ["goalkeeper", "bramkarz lub bramkarka", "🥅", "The goalkeeper caught the ball."],
+    ["referee", "sędzia sportowy", "🟨", "The referee stopped the game."],
+    ["score a goal", "strzelić gola", "⚽", "Our team scored a goal in the last minute."],
+    ["warm up", "rozgrzać się przed ćwiczeniami", "🤸", "We always warm up before training."],
+    ["take part", "wziąć udział", "🙋", "Would you like to take part in the race?"],
+    ["win a medal", "zdobyć medal", "🏅", "She won a medal in the swimming race."],
+    ["keep fit", "dbać o kondycję", "🏃", "I go running twice a week to keep fit."]
+  ] }
+];
 const $ = id => document.getElementById(id);
 const card = $("card");
 const settings = $("settings");
@@ -1491,6 +1796,8 @@ function normalizeStudy(saved) {
     langFrom: word.langFrom ?? word.from,
     langTo: word.langTo ?? word.to,
     ipa: String(word.ipa ?? word.pronunciation ?? "").trim(),
+    ...(word.icon ? { icon: String(word.icon) } : {}),
+    ...(word.example ? { example: String(word.example) } : {}),
     known: word.known === true
   }));
   const cursor = Number.isInteger(saved.cursor) && words[saved.cursor]?.known === false
@@ -1507,6 +1814,21 @@ function restoreBuiltin(set, saved) {
     : -1;
   return { ...set, words, cursor: cursor < 0 ? firstUnknown(words) : cursor };
 }
+function makeSchoolSets() {
+  return SCHOOL_CURRICULUM.map(({ id, grade, category, icon, entries }) => ({
+    id: "school-" + id, grade, category, icon, title: category, cursor: 0,
+    words: entries.map(([word, translation, icon, example = ""]) => ({
+      word, translation, icon, example, ipa: "", langFrom: "EN", langTo: "PL", known: false
+    }))
+  }));
+}
+function setsForMode(sets, mode) {
+  return mode === "child" ? sets.filter(set => GRADES.includes(set.grade)) : sets;
+}
+function chooseActive(sets, mode, preferredId) {
+  const available = setsForMode(sets, mode);
+  return available.find(set => set.id === preferredId)?.id ?? available[0]?.id ?? null;
+}
 function loadLibrary() {
   const builtins = [...CURRICULUM, ...BUILT_IN_SETS].map(set => ({
     id: set.id,
@@ -1516,7 +1838,7 @@ function loadLibrary() {
     description: set.description ?? "Dotychczasowy zestaw tematyczny B1/B2.",
     words: makeWords(builtinRows(set)),
     cursor: 0
-  }));
+  })).concat(makeSchoolSets());
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw !== null) {
@@ -1528,25 +1850,39 @@ function loadLibrary() {
         .concat(Array.from(restored.values())
           .filter(set => set.id === "legacy" || set.id.startsWith("excel-"))
           .map(set => customSet(set.id, set.title ?? set.name, set)));
-      return { sets, removedBuiltins, activeId: sets.some(set => set.id === saved.activeId) ? saved.activeId : sets[0]?.id ?? null };
+      const mode = saved.mode === "child" ? "child" : "standard";
+      const lastActive = { standard: saved.lastActive?.standard, child: saved.lastActive?.child };
+      return { sets, removedBuiltins, mode, lastActive, activeId: chooseActive(sets, mode, saved.activeId) };
     }
     const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
     if (legacy !== null) {
       const old = normalizeStudy(JSON.parse(legacy));
       if (old.words.length) {
-        return { sets: [...builtins, customSet("legacy", "Poprzedni zestaw", old)], removedBuiltins: [], activeId: "legacy" };
+        return { sets: [...builtins, customSet("legacy", "Poprzedni zestaw", old)], removedBuiltins: [], mode: "standard", lastActive: {}, activeId: "legacy" };
       }
     }
   } catch {
     setTimeout(() => toast("Nie udało się odczytać lokalnego zapisu."), 0);
   }
-  return { sets: builtins, removedBuiltins: [], activeId: builtins[0].id };
+  return { sets: builtins, removedBuiltins: [], mode: "standard", lastActive: {}, activeId: builtins[0].id };
 }
-function customSet(id, title, { words, cursor }) {
-  return { id, level: null, category: id === "legacy" ? "Poprzedni zestaw" : "Importy z Excela", title, words, cursor };
+function customSet(id, title, { words, cursor, grade }) {
+  const schoolGrade = GRADES.includes(grade) ? grade : null;
+  return {
+    id, level: null, grade: schoolGrade,
+    category: id === "legacy" ? "Poprzedni zestaw" : schoolGrade ? "Importy szkolne" : "Importy z Excela",
+    title, words, cursor
+  };
 }
 let library = loadLibrary();
 const activeSet = () => library.sets.find(set => set.id === library.activeId);
+const isChild = () => library.mode === "child";
+const schoolPicker = $("school-picker");
+let selectedGrade = activeSet()?.grade ?? GRADES[0];
+let sessionStars = 0;
+let coachMessage = "Spróbujmy dalej!";
+let confettiTimer;
+let currentUtterance;
 let gesture = null;
 let animating = false;
 let toastTimer;
@@ -1580,9 +1916,18 @@ function saveStudy(next) {
   });
 }
 const countKnown = set => set.words.filter(word => word.known).length;
+function configureSettingsFilters() {
+  const filter = $("level-filter");
+  $("level-label").textContent = isChild() ? "Klasy" : "Poziom";
+  filter.replaceChildren(new Option("Wszystkie", ""), ...(isChild()
+    ? GRADES.map(grade => new Option("Klasy " + grade, grade))
+    : LEVELS.map(level => new Option(level, level))));
+  $("category-filter").value = "";
+  $("delete-level").textContent = isChild() ? "Usuń zestawy wybranych klas" : "Usuń wybrany poziom";
+}
 function setsAtLevel() {
   const level = $("level-filter").value;
-  return library.sets.filter(set => !level || set.level === level);
+  return setsForMode(library.sets, library.mode).filter(set => !level || (isChild() ? set.grade : set.level) === level);
 }
 function renderSets() {
   const level = $("level-filter").value;
@@ -1597,7 +1942,8 @@ function renderSets() {
   const visible = levelSets.filter(set => !category || set.category === category);
   const known = levelSets.reduce((sum, set) => sum + countKnown(set), 0);
   const total = levelSets.reduce((sum, set) => sum + set.words.length, 0);
-  $("level-summary").textContent = (level ? "Poziom " + level : "Cała biblioteka") + " · Znam: " + known + "/" + total;
+  const scope = level ? (isChild() ? "Klasy " : "Poziom ") + level : isChild() ? "Zestawy szkolne" : "Cała biblioteka";
+  $("level-summary").textContent = scope + " · Znam: " + known + "/" + total;
   $("level-progress").max = total || 1;
   $("level-progress").value = known;
   $("delete-category").disabled = !category || visible.length === 0;
@@ -1611,7 +1957,7 @@ function renderSets() {
     button.setAttribute("aria-pressed", String(set.id === library.activeId));
     const name = document.createElement("span");
     name.className = "set-name";
-    name.textContent = set.title;
+    name.textContent = setLabel(set);
     if (set.description) {
       const description = document.createElement("span");
       description.className = "set-description";
@@ -1628,23 +1974,96 @@ function renderSets() {
     bar.setAttribute("aria-hidden", "true");
     progress.append(bar);
     button.append(name, progress);
-    button.onclick = () => {
-      if (set.id !== library.activeId && !saveLibrary({ ...library, activeId: set.id })) return;
-      settings.close();
-      render();
-    };
+    button.onclick = () => selectSet(set.id, settings);
     item.append(button);
     return item;
   });
   list.replaceChildren(...buttons);
 }
+function setLabel(set) {
+  return set.grade ? "Klasy " + set.grade + " · " + set.title : set.title;
+}
+function selectSet(id, dialog) {
+  if (id !== library.activeId && !saveLibrary({ ...library, activeId: id })) return;
+  stopSpeech();
+  coachMessage = "Spróbujmy dalej!";
+  if (dialog.open) dialog.close();
+  render();
+}
+function renderSchoolPicker() {
+  const tabs = GRADES.map(grade => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Klasy " + grade;
+    button.setAttribute("aria-pressed", String(grade === selectedGrade));
+    button.onclick = () => {
+      selectedGrade = grade;
+      renderSchoolPicker();
+      $("grade-tabs").children[GRADES.indexOf(grade)].focus();
+    };
+    return button;
+  });
+  $("grade-tabs").replaceChildren(...tabs);
+  const sets = setsForMode(library.sets, "child").filter(set => set.grade === selectedGrade);
+  const topics = sets.map(set => {
+    const item = document.createElement("li");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("aria-pressed", String(set.id === library.activeId));
+    const icon = document.createElement("span");
+    icon.className = "topic-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = set.icon ?? "📚";
+    const progress = document.createElement("span");
+    progress.className = "set-progress";
+    progress.textContent = "Znam: " + countKnown(set) + "/" + set.words.length;
+    button.append(icon, set.title, progress);
+    button.onclick = () => selectSet(set.id, schoolPicker);
+    item.append(button);
+    return item;
+  });
+  $("school-topics").replaceChildren(...topics);
+  $("school-empty").hidden = sets.length > 0;
+}
+function openSchoolPicker() {
+  if (!isChild() || schoolPicker.open) return;
+  const grade = activeSet()?.grade;
+  selectedGrade = grade ?? setsForMode(library.sets, "child")[0]?.grade ?? GRADES[0];
+  renderSchoolPicker();
+  schoolPicker.showModal();
+}
+function switchMode(mode) {
+  if (library.mode === mode) {
+    if (isChild()) openSchoolPicker();
+    return;
+  }
+  const lastActive = { ...library.lastActive, [library.mode]: library.activeId };
+  const activeId = chooseActive(library.sets, mode, lastActive[mode]);
+  if (!saveLibrary({ ...library, mode, activeId, lastActive })) return;
+  stopSpeech();
+  clearTimeout(confettiTimer);
+  $("confetti").replaceChildren();
+  coachMessage = "Spróbujmy dalej!";
+  configureSettingsFilters();
+  render();
+  if (isChild()) openSchoolPicker();
+}
 function render() {
+  const child = isChild();
+  document.body.classList.toggle("child-mode", child);
+  $("child-theme-color").media = child ? "all" : "not all";
+  $("mode-child").setAttribute("aria-pressed", String(child));
+  $("mode-standard").setAttribute("aria-pressed", String(!child));
+  $("child-tools").hidden = $("coach").hidden = !child;
+  $("brand-mascot").toggleAttribute("hidden", !child);
+  $("star-count").textContent = sessionStars;
+  $("coach-text").textContent = coachMessage;
   const study = activeSet();
   const total = study?.words.length ?? 0;
   const known = study ? countKnown(study) : 0;
   const remaining = total - known;
-  $("active-set").textContent = study?.title ?? "";
-  $("managed-set").textContent = study?.title ?? "Brak aktywnego zestawu";
+  $("active-set").textContent = study ? setLabel(study) : "";
+  $("managed-set").textContent = study ? setLabel(study) : "Brak aktywnego zestawu";
   $("known").textContent = known;
   $("remaining").textContent = remaining;
   $("progress").max = total || 1;
@@ -1662,6 +2081,11 @@ function render() {
     $("pronunciation").textContent = current.ipa;
     $("pronunciation").hidden = !current.ipa;
     $("translation").textContent = current.translation;
+    $("word-emoji").textContent = child ? current.icon || study.icon || "📚" : "";
+    $("word-emoji").hidden = !child;
+    $("word-example").textContent = child ? current.example ?? "" : "";
+    $("word-example").hidden = !child || !current.example;
+    $("speak").hidden = !child || !isEnglish(current.langFrom);
     $("word").title = current.word;
     $("translation").title = current.translation;
     return;
@@ -1670,13 +2094,67 @@ function render() {
   $("empty-mark").textContent = complete ? "✓" : "＋";
   $("empty-title").textContent = complete ? "Brawo! Znasz cały zestaw" : "Brak fiszek";
   $("empty-text").textContent = complete ? "Opanowane słowa: " + known : "Zaimportuj zestaw z Excela, aby zacząć naukę.";
-  $("empty-action").textContent = complete ? "Powtórz cały zestaw od nowa" : "Przejdź do importu";
+  $("empty-action").textContent = complete ? "Powtórz cały zestaw od nowa" : child ? "Wybierz temat" : "Przejdź do importu";
 }
 function resetStudy() {
   const words = activeSet().words.map(word => ({ ...word, known: false }));
   if (!saveStudy({ words, cursor: 0 })) return false;
+  stopSpeech();
+  coachMessage = "Spróbujmy dalej!";
+  clearTimeout(confettiTimer);
+  $("confetti").replaceChildren();
   render();
   return true;
+}
+function isEnglish(language) {
+  return /^(?:en(?:[-_]gb|[-_]us)?|english|angielski|język angielski)$/i.test(language.trim());
+}
+function stopSpeech() {
+  if (!currentUtterance) return;
+  currentUtterance = null;
+  window.speechSynthesis?.cancel();
+}
+$("speak").onclick = () => {
+  const set = activeSet();
+  const word = set?.words[set.cursor];
+  if (!isChild() || animating || !word || !isEnglish(word.langFrom)) return;
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+    toast("Ta przeglądarka nie obsługuje lektora.");
+    return;
+  }
+  stopSpeech();
+  const utterance = new SpeechSynthesisUtterance(word.word);
+  const voices = window.speechSynthesis.getVoices().filter(voice => /^en\b/i.test(voice.lang));
+  const preferred = voice => /^en-(GB|US)$/i.test(voice.lang);
+  const voice = voices.find(item => item.localService && preferred(item))
+    ?? voices.find(item => item.localService)
+    ?? (navigator.onLine ? voices.find(preferred) ?? voices[0] : undefined);
+  if (voice) utterance.voice = voice;
+  utterance.lang = voice?.lang ?? "en-GB";
+  utterance.rate = .83;
+  currentUtterance = utterance;
+  utterance.onend = () => { if (currentUtterance === utterance) currentUtterance = null; };
+  utterance.onerror = () => {
+    if (currentUtterance !== utterance) return;
+    currentUtterance = null;
+    toast("Lektor jest niedostępny. Sprawdź, czy na urządzeniu jest zainstalowany głos angielski.");
+  };
+  window.speechSynthesis.speak(utterance);
+};
+function celebrate() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  clearTimeout(confettiTimer);
+  const colors = ["#ffbd47", "#ec7258", "#60c99e", "#60a4ed", "#a785f3"];
+  const pieces = Array.from({ length: 32 }, (_, index) => {
+    const piece = document.createElement("i");
+    piece.style.left = (index + .5) * (100 / 32) + "%";
+    piece.style.setProperty("--piece-color", colors[index % colors.length]);
+    piece.style.setProperty("--delay", (index % 8) * 45 + "ms");
+    piece.style.setProperty("--drift", (Math.random() - .5) * 120 + "px");
+    return piece;
+  });
+  $("confetti").replaceChildren(...pieces);
+  confettiTimer = setTimeout(() => $("confetti").replaceChildren(), 1800);
 }
 function moveCard(dx, dy, direction) {
   card.style.transform = "translate(" + dx + "px," + dy + "px) rotate(" + Math.max(-16, Math.min(16, dx / 15)) + "deg)";
@@ -1690,7 +2168,7 @@ function clearGesture() {
   moveCard(0, 0);
 }
 function answer(known) {
-  if (animating || card.hidden || settings.open) return;
+  if (animating || card.hidden || settings.open || schoolPicker.open) return;
   const study = activeSet();
   const words = study.words.slice();
   if (known) words[study.cursor] = { ...words[study.cursor], known: true };
@@ -1700,6 +2178,13 @@ function answer(known) {
     clearGesture();
     return;
   }
+  stopSpeech();
+  const child = isChild();
+  if (child) {
+    if (known) sessionStars++;
+    coachMessage = known ? (sessionStars % 2 ? "Super!" : "Świetnie Ci idzie!") : "Spróbujmy dalej!";
+  }
+  const completed = child && known && words.every(word => word.known);
   animating = true;
   $("yes").disabled = $("no").disabled = true;
   gesture = null;
@@ -1712,6 +2197,7 @@ function answer(known) {
     moveCard(0, 0);
     card.style.opacity = "";
     render();
+    if (completed && isChild() && library.activeId === study.id && !activeSet().words.some(word => !word.known)) celebrate();
     requestAnimationFrame(() => {
       card.classList.remove("drag");
       $("yes").disabled = $("no").disabled = false;
@@ -1720,7 +2206,7 @@ function answer(known) {
   }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 245);
 }
 card.addEventListener("touchstart", event => {
-  if (animating || event.touches.length !== 1) return;
+  if (animating || event.target.closest("button") || event.touches.length !== 1) return;
   const touch = event.touches[0];
   gesture = { id: touch.identifier, x: touch.clientX, y: touch.clientY };
   card.classList.add("drag");
@@ -1745,12 +2231,19 @@ card.addEventListener("touchend", event => {
 card.addEventListener("touchcancel", clearGesture);
 $("yes").onclick = () => answer(true);
 $("no").onclick = () => answer(false);
+$("mode-standard").onclick = () => switchMode("standard");
+$("mode-child").onclick = () => switchMode("child");
+$("school-open").onclick = openSchoolPicker;
 $("settings-open").onclick = () => settings.showModal();
 $("badge").onclick = () => {
   settings.showModal();
   $("updates").scrollIntoView({ block: "nearest" });
 };
-$("empty-action").onclick = () => activeSet()?.words.length ? resetStudy() : settings.showModal();
+$("empty-action").onclick = () => {
+  if (activeSet()?.words.length) resetStudy();
+  else if (isChild()) openSchoolPicker();
+  else settings.showModal();
+};
 $("reset").onclick = () => {
   const set = activeSet();
   if (set && confirm("Zresetować postęp zestawu „" + set.title + "”?") && resetStudy()) toast("Postęp zestawu zresetowany.");
@@ -1760,11 +2253,13 @@ function removeSets(targets, question) {
   const removing = new Set(targets.map(set => set.id));
   const sets = library.sets.filter(set => !removing.has(set.id));
   const removedBuiltins = [...library.removedBuiltins];
-  for (const set of [...CURRICULUM, ...BUILT_IN_SETS]) {
-    if (removing.has(set.id)) removedBuiltins.push(set.id);
+  for (const set of targets) {
+    if (set.id !== "legacy" && !set.id.startsWith("excel-")) removedBuiltins.push(set.id);
   }
-  const activeId = removing.has(library.activeId) ? sets[0]?.id ?? null : library.activeId;
-  if (saveLibrary({ sets, activeId, removedBuiltins })) {
+  const activeRemoved = removing.has(library.activeId);
+  const activeId = chooseActive(sets, library.mode, library.activeId);
+  if (saveLibrary({ ...library, sets, activeId, removedBuiltins })) {
+    if (activeRemoved) stopSpeech();
     render();
     toast("Usunięto zestawy: " + targets.length + ".");
   }
@@ -1779,13 +2274,16 @@ $("delete-category").onclick = () => {
   const category = $("category-filter").value;
   if (!category) return;
   const level = $("level-filter").value;
-  const scope = level ? " na poziomie " + level : " we wszystkich poziomach i zestawach własnych";
+  const scope = isChild() ? (level ? " w klasach " + level : " we wszystkich klasach")
+    : level ? " na poziomie " + level : " we wszystkich poziomach i zestawach własnych";
   removeSets(setsAtLevel().filter(set => set.category === category),
     "Usunąć kategorię „" + category + "”" + scope + " wraz z jej postępem?");
 };
 $("delete-level").onclick = () => {
   const level = $("level-filter").value;
-  if (LEVELS.includes(level)) removeSets(setsAtLevel(), "Usunąć wszystkie zestawy poziomu " + level + " i ich postęp?");
+  if ((isChild() ? GRADES : LEVELS).includes(level)) {
+    removeSets(setsAtLevel(), "Usunąć wszystkie zestawy " + (isChild() ? "klas " : "poziomu ") + level + " i ich postęp?");
+  }
 };
 
 function loadExcel() {
@@ -1827,13 +2325,17 @@ function readRows(XLSX, buffer) {
   if (!sheet?.["!ref"]) return { rows: [], skipped: 0 };
   const range = XLSX.utils.decode_range(sheet["!ref"]);
   range.s.c = 0;
-  range.e.c = 4;
+  range.e.c = 7;
   const values = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: "", blankrows: false, range });
-  const candidates = values.map(row => Array.from({ length: 5 }, (_, index) => String(row[index] ?? "").trim()))
+  const candidates = values.map(row => Array.from({ length: 8 }, (_, index) => String(row[index] ?? "").trim()))
     .filter(row => row.some(Boolean));
-  if (candidates.length && headerRow(candidates[0])) candidates.shift();
+  const header = candidates.length && headerRow(candidates[0]) ? candidates.shift() : null;
   const rows = candidates.filter(row => row.slice(0, 4).every(Boolean));
-  return { rows, skipped: candidates.length - rows.length };
+  const markedSchool = !!header && /^klasy$/i.test(header[5]);
+  const parseGrade = value => value.replace(/^klasy\s*/i, "").replace(/\s*[-–—]\s*/g, "–");
+  const proposed = markedSchool && rows.length ? parseGrade(rows[0][5]) : "";
+  const grade = GRADES.includes(proposed) && rows.every(row => parseGrade(row[5]) === proposed && isEnglish(row[0])) ? proposed : null;
+  return { rows: rows.map(row => grade ? row : row.slice(0, 5)), grade, markedSchool, skipped: candidates.length - rows.length };
 }
 function importStatus(message) {
   $("import-status").hidden = false;
@@ -1862,35 +2364,57 @@ $("file").onchange = event => {
     if (!result.rows.length) throw new Error("W pierwszym arkuszu nie znaleziono wierszy z kompletem czterech pól.");
     const id = "excel-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
     const name = file.name.replace(/\.(xlsx|xls)$/i, "").trim() || "Zestaw z Excela";
-    const set = customSet(id, name, { words: makeWords(result.rows), cursor: 0 });
-    if (saveLibrary({ ...library, sets: [...library.sets, set], activeId: id })) {
+    const words = makeWords(result.rows);
+    if (result.grade) words.forEach((word, index) => {
+      word.icon = result.rows[index][6];
+      word.example = result.rows[index][7];
+    });
+    const set = customSet(id, name, { words, grade: result.grade, cursor: 0 });
+    const activate = !isChild() || !!set.grade;
+    if (saveLibrary({ ...library, sets: [...library.sets, set], activeId: activate ? id : library.activeId })) {
+      if (activate) stopSpeech();
       $("level-filter").value = "";
       $("category-filter").value = "";
       render();
-      importStatus("Zaimportowano słowa: " + result.rows.length + "." + (result.skipped ? " Pominięto niepełne wiersze: " + result.skipped + "." : ""));
+      let visibility = "";
+      if (result.markedSchool && !result.grade) visibility = " Zestaw jest dostępny w trybie standardowym. Zestaw szkolny wymaga angielskich fiszek i jednego zakresu klas we wszystkich wierszach.";
+      else if (!activate) visibility = " Zestaw jest dostępny w trybie standardowym.";
+      importStatus("Zaimportowano słowa: " + result.rows.length + "." + (result.skipped ? " Pominięto niepełne wiersze: " + result.skipped + "." : "") + visibility);
     } else importStatus("Nie udało się zapisać zestawu.");
   });
 };
-function writeWorkbook(XLSX, rows, filename) {
+function writeWorkbook(XLSX, rows, filename, grade) {
   const book = XLSX.utils.book_new();
-  const sheet = XLSX.utils.aoa_to_sheet([["Język słowa", "Język tłumaczenia", "Słowo", "Tłumaczenie", "Transkrypcja"], ...rows]);
-  sheet["!cols"] = [{ wch: 16 }, { wch: 21 }, { wch: 38 }, { wch: 46 }, { wch: 42 }];
+  const headers = ["Język słowa", "Język tłumaczenia", "Słowo", "Tłumaczenie", "Transkrypcja"];
+  if (grade) headers.push("Klasy", "Emoji", "Przykład");
+  const sheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  sheet["!cols"] = [16, 21, 38, 46, 42, 10, 10, 48].slice(0, headers.length).map(wch => ({ wch }));
   XLSX.utils.book_append_sheet(book, sheet, "Fiszki");
   XLSX.writeFile(book, filename);
 }
 $("template").onclick = () => void excelAction(async XLSX => {
-  const sample = builtinRows(BUILT_IN_SETS[0]).slice(0, 4);
-  sample[3][4] = "";
-  writeWorkbook(XLSX, sample, "ZnamTo-szablon.xlsx");
+  if (isChild()) {
+    const set = SCHOOL_CURRICULUM.find(item => item.grade === "4–6");
+    const sample = set.entries.slice(0, 3).map(([word, translation, icon, example]) => ["EN", "PL", word, translation, "", set.grade, icon, example]);
+    writeWorkbook(XLSX, sample, "ZnamTo-szablon-szkolny.xlsx", set.grade);
+  } else {
+    const sample = builtinRows(BUILT_IN_SETS[0]).slice(0, 4);
+    sample[3][4] = "";
+    writeWorkbook(XLSX, sample, "ZnamTo-szablon.xlsx");
+  }
   importStatus("Szablon jest gotowy do pobrania.");
 });
 $("export").onclick = () => {
   const set = activeSet();
   if (!set?.words.length) return;
   void excelAction(async XLSX => {
-    const rows = set.words.map(({ langFrom, langTo, word, translation, ipa }) => [langFrom, langTo, word, translation, ipa]);
+    const rows = set.words.map(({ langFrom, langTo, word, translation, ipa, icon, example }) => {
+      const row = [langFrom, langTo, word, translation, ipa];
+      if (set.grade) row.push(set.grade, icon ?? "", example ?? "");
+      return row;
+    });
     const name = set.title.replace(/[<>:"/\\|?*]/g, "-");
-    writeWorkbook(XLSX, rows, name + ".xlsx");
+    writeWorkbook(XLSX, rows, name + ".xlsx", set.grade);
     importStatus("Plik zestawu jest gotowy do pobrania.");
   });
 };
@@ -2122,6 +2646,7 @@ window.addEventListener("offline", () => {
   $("update-status").textContent = "Offline";
   updateControls();
 });
+configureSettingsFilters();
 render();
 installIcons();
 $("version").textContent = "v" + APP_VERSION;
