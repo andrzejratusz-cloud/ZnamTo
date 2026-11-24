@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZnamTo">
+<meta name="theme-color" content="#14121c" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f8f6ff" media="(prefers-color-scheme: light)">
+<title>ZnamTo — Fiszki</title>
+<style>
+:root{color-scheme:light dark;--bg:#f8f6ff;--panel:#fff;--ink:#241c38;--muted:#675d7b;--line:#e5def3;--accent:#6948ca;--track:#e8e0f7;--card:#4c329e;--card2:#301d70;--yes:#15734f;--yesbg:#dcf5e9;--no:#a53c32;--nobg:#ffebe6}
+@media(prefers-color-scheme:dark){:root{--bg:#14121c;--panel:#201c2c;--ink:#f7f2ff;--muted:#bdb2d0;--line:#39304b;--accent:#b79aff;--track:#39304b;--card:#4b3297;--card2:#2f1e66;--yes:#a0efc6;--yesbg:#18392e;--no:#ffb2a3;--nobg:#462824}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;overflow:hidden;overscroll-behavior:none}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,sans-serif}
+button,input{font:inherit}
+button{cursor:pointer;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);padding:10px 14px;min-height:44px;font-weight:650;touch-action:manipulation}
+button:disabled{opacity:.48;cursor:default}
+button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.app{height:100vh;height:100dvh;max-width:576px;margin:auto;display:flex;flex-direction:column;gap:clamp(8px,2.7dvh,26px);padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+header,.stats,.actions,.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;margin:0;font-size:23px;letter-spacing:-.05em}
+.brand img{width:36px;height:36px;border-radius:10px}
+.top-actions{display:flex;gap:8px}
+.gear{width:46px;padding:0;font-size:23px}
+.badge{color:var(--accent);font-size:12px}
+.stats{color:var(--muted);font-size:13px;font-weight:650;margin-bottom:8px}
+.stats strong{color:var(--ink);font-variant-numeric:tabular-nums}
+progress{display:block;width:100%;height:7px;border:0;border-radius:10px;appearance:none;background:var(--track);color:var(--accent);overflow:hidden}
+progress::-webkit-progress-bar{background:var(--track)}
+progress::-webkit-progress-value{background:var(--accent)}
+progress::-moz-progress-bar{background:var(--accent)}
+.stage{flex:1;min-height:0;display:grid;position:relative;isolation:isolate}
+.stage:has(.card:not([hidden]))::before{content:"";position:absolute;inset:9px 12px -7px;border-radius:25px;background:var(--track);z-index:-1}
+.card,.empty{border-radius:26px;min-height:0}
+.card{position:relative;overflow:hidden;touch-action:none;user-select:none;display:grid;grid-template-rows:auto minmax(0,1fr);padding:clamp(14px,4vw,26px);color:#fff;background:radial-gradient(ellipse at 100% 0%,#7252cf 0%,transparent 56%),linear-gradient(150deg,var(--card),var(--card2));box-shadow:0 12px 30px #301d702c;will-change:transform;transition:transform .24s ease,opacity .24s ease,box-shadow .16s ease}
+.card.drag{transition:none}
+.card[data-direction="yes"]{box-shadow:0 0 32px #39ce86a0}
+.card[data-direction="no"]{box-shadow:0 0 32px #ff775ca0}
+.languages,.swipe-label{justify-self:start;border:1px solid #ffffff53;border-radius:30px;padding:5px 11px;font-size:12px;font-weight:750;letter-spacing:.04em;background:#26145555}
+.swipe-label{position:absolute;right:16px;top:16px;background:#e1ffed;color:#16543a;border:0}
+.card[data-direction="no"] .swipe-label{color:#892c24;background:#ffe8e1}
+.words{align-self:center;max-height:100%;overflow:hidden;text-align:center;overflow-wrap:anywhere;padding:8px 1px}
+.word,.translation{margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.word{font-size:clamp(24px,7vw,53px);font-weight:780;line-height:1.08;letter-spacing:-.045em}
+.translation{color:#eee7ff;font-size:clamp(17px,4.6vw,27px);line-height:1.24}
+.rule{width:36px;height:2px;background:#ffffff65;margin:clamp(7px,2dvh,18px) auto;border:0}
+.empty{padding:16px;text-align:center;display:grid;align-content:center;justify-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);overflow:auto}
+.empty h2,.empty p,.dialog-head h2{margin:0}
+.empty p,section p{color:var(--muted)}
+.empty-mark{font-size:27px;color:var(--accent)}
+footer{display:grid;gap:8px}
+.actions button{flex:1;min-height:clamp(48px,9dvh,68px);font-size:clamp(15px,4vw,19px);border:0;border-radius:17px}
+.no{background:var(--nobg);color:var(--no)}
+.yes{background:var(--yesbg);color:var(--yes)}
+.hint{margin:0;text-align:center;color:var(--muted);font-size:12px}
+dialog{width:min(calc(100% - 24px),520px);max-height:calc(100dvh - max(16px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom)));padding:0;border:1px solid var(--line);border-radius:22px;color:var(--ink);background:var(--panel);overscroll-behavior:contain;box-shadow:0 22px 80px #0005}
+dialog::backdrop{background:#160e2a85}
+.dialog-head{position:sticky;top:0;background:var(--panel);padding:14px 18px;border-bottom:1px solid var(--line);z-index:1}
+.dialog-body{padding:0 18px 18px}
+section{padding:16px 0;border-bottom:1px solid var(--line)}
+section:last-child{border:0;padding-bottom:0}
+section h3{margin:0 0 6px}
+section p{margin:6px 0 12px}
+.controls{display:flex;flex-wrap:wrap;gap:8px}
+.primary{background:var(--accent);color:var(--bg);border:0}
+.danger{color:var(--no)}
+summary{cursor:pointer;font-weight:700;padding:10px 0}
+.toast{position:fixed;z-index:3;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);background:var(--ink);color:var(--bg);padding:10px 15px;border-radius:12px}
+@media(max-height:460px){.hint{display:none}.word{font-size:clamp(22px,6dvh,38px)}.translation{font-size:clamp(16px,4.5dvh,23px)}}
+@media(prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <h1 class="brand"><img id="brand-icon" alt="" width="36" height="36">ZnamTo</h1>
+    <div class="top-actions">
+      <button id="badge" class="badge" hidden>Nowa wersja</button>
+      <button id="settings-open" class="gear" aria-label="Ustawienia" title="Ustawienia">⚙</button>
+    </div>
+  </header>
+  <div>
+    <div class="stats"><span>Znam: <strong id="known">0</strong></span><span>Do nauki: <strong id="remaining">0</strong></span></div>
+    <progress id="progress" value="0" max="1" aria-label="Postęp nauki"></progress>
+  </div>
+  <div class="stage">
+    <article id="card" class="card" aria-label="Fiszka" hidden>
+      <span id="languages" class="languages"></span>
+      <span id="swipe-label" class="swipe-label" hidden></span>
+      <div class="words" aria-live="polite"><h2 id="word" class="word"></h2><hr class="rule"><p id="translation" class="translation"></p></div>
+    </article>
+    <div id="empty" class="empty" hidden>
+      <span id="empty-mark" class="empty-mark" aria-hidden="true"></span>
+      <h2 id="empty-title"></h2><p id="empty-text"></p>
+      <button id="empty-action" class="primary"></button>
+    </div>
+  </div>
+  <footer id="footer" hidden>
+    <div class="actions"><button id="no" class="no">✕ &nbsp; Nie znam</button><button id="yes" class="yes">✓ &nbsp; Znam</button></div>
+    <p class="hint">Możesz też przesunąć kartę w lewo lub w prawo</p>
+  </footer>
+</main>
+<dialog id="settings" aria-labelledby="settings-title">
+  <div class="dialog-head"><h2 id="settings-title">Ustawienia</h2><form method="dialog"><button aria-label="Zamknij ustawienia">✕</button></form></div>
+  <div class="dialog-body">
+    <section>
+      <h3>Import z Excela</h3>
+      <p>Pierwszy arkusz powinien mieć cztery kolumny: język słowa, język tłumaczenia, słowo i tłumaczenie. Nagłówek jest opcjonalny. Import zastępuje obecny zestaw.</p>
+      <div class="controls"><button id="choose" class="primary">Wybierz plik Excel</button><button id="template">Pobierz szablon .xlsx</button></div>
+      <input id="file" type="file" accept=".xls,.xlsx" hidden>
+      <p id="import-status" role="status" hidden></p>
+    </section>
+    <section id="updates">
+      <h3>Aktualizacje <small id="version"></small></h3>
+      <p id="update-status" role="status"></p>
+      <p id="offline-status" role="status"></p>
+      <div class="controls"><button id="check">Sprawdź aktualizacje</button><button id="upgrade" class="primary" disabled>Aktualizuj aplikację (Upgrade)</button></div>
+      <details><summary>Release Notes</summary><div id="history"></div></details>
+    </section>
+    <section>
+      <h3>Zestaw i postęp</h3>
+      <div class="controls"><button id="reset">Resetuj postęp</button><button id="clear" class="danger">Wyczyść bazę słów</button></div>
+    </section>
+  </div>
+</dialog>
+<dialog id="news" aria-labelledby="news-title">
+  <div class="dialog-head"><h2 id="news-title">Co nowego?</h2><form method="dialog"><button aria-label="Zamknij nowości">✕</button></form></div>
+  <div id="news-body" class="dialog-body"></div>
+</dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<script id="app-script">
+"use strict";
+const APP_VERSION = "1.0.0";
+const RELEASE_NOTES = [
+  { version: "1.0.0", date: "2026-11-24", items: [
+    "Fiszki z gestami i automatycznymi rundami powtórek.",
+    "Import .xlsx i .xls oraz gotowy szablon.",
+    "Nauka offline i aktualizacje z zachowaniem lokalnego postępu."
+  ] }
+];
+const SHEETJS = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+const STORAGE_KEY = "znamto.study";
+const VERSION_KEY = "znamto.version";
+const DEMO = [
+  ["EN", "PL", "ubiquitous", "wszechobecny"],
+  ["EN", "PL", "glimpse", "przelotne spojrzenie"],
+  ["EN", "PL", "resilient", "odporny"],
+  ["EN", "PL", "wander", "wędrować"],
+  ["EN", "PL", "thoughtful", "troskliwy"]
+];
+const $ = id => document.getElementById(id);
+const card = $("card");
+const settings = $("settings");
+const appURL = new URL(location.href);
+appURL.search = "";
+appURL.hash = "";
+const canFetch = ["http:", "https:"].includes(appURL.protocol);
+const sw = canFetch ? navigator.serviceWorker : undefined;
+const makeWords = rows => rows.map(([from, to, word, translation]) => ({ from, to, word, translation, known: false }));
+function firstUnknown(words) {
+  return Math.max(0, words.findIndex(word => !word.known));
+}
+function loadStudy() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw !== null) {
+      const saved = JSON.parse(raw);
+      if (!Array.isArray(saved.words) || !saved.words.every(word =>
+        word && ["from", "to", "word", "translation"].every(key => typeof word[key] === "string")
+      )) throw new Error("Nieprawidłowy zapis");
+      saved.words = saved.words.map(word => ({ ...word, known: word.known === true }));
+      if (!Number.isInteger(saved.cursor) || saved.words[saved.cursor]?.known !== false) {
+        saved.cursor = firstUnknown(saved.words);
+      }
+      return saved;
+    }
+  } catch {
+    setTimeout(() => toast("Nie udało się odczytać lokalnego zapisu."), 0);
+  }
+  return { words: makeWords(DEMO), cursor: 0 };
+}
+let study = loadStudy();
+let gesture = null;
+let animating = false;
+let toastTimer;
+let excelPromise;
+let newerVersion = null;
+let checking = false;
+let upgrading = false;
+let offlineReady = false;
+let offlineSetup;
+
+function toast(message) {
+  clearTimeout(toastTimer);
+  $("toast").hidden = false;
+  $("toast").textContent = message;
+  toastTimer = setTimeout(() => { $("toast").hidden = true; }, 4000);
+}
+function saveStudy(next) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    study = next;
+    return true;
+  } catch {
+    toast("Nie udało się zapisać zmian. Sprawdź dostępne miejsce i ustawienia przeglądarki.");
+    return false;
+  }
+}
+function render() {
+  const known = study.words.filter(word => word.known).length;
+  const remaining = study.words.length - known;
+  $("known").textContent = known;
+  $("remaining").textContent = remaining;
+  $("progress").max = study.words.length || 1;
+  $("progress").value = known;
+  $("reset").disabled = !study.words.length;
+  $("clear").disabled = !study.words.length;
+  $("card").hidden = $("footer").hidden = remaining === 0;
+  $("empty").hidden = remaining > 0;
+  if (remaining) {
+    const current = study.words[study.cursor];
+    $("languages").textContent = current.from + " → " + current.to;
+    $("word").textContent = current.word;
+    $("translation").textContent = current.translation;
+    $("word").title = current.word;
+    $("translation").title = current.translation;
+    return;
+  }
+  const complete = study.words.length > 0;
+  $("empty-mark").textContent = complete ? "✓" : "＋";
+  $("empty-title").textContent = complete ? "Brawo! Znasz cały zestaw" : "Brak fiszek";
+  $("empty-text").textContent = complete ? "Opanowane słowa: " + known : "Zaimportuj zestaw z Excela, aby zacząć naukę.";
+  $("empty-action").textContent = complete ? "Powtórz cały zestaw od nowa" : "Przejdź do importu";
+}
+function replaceWords(words) {
+  if (saveStudy({ words, cursor: 0 })) {
+    render();
+    return true;
+  }
+  return false;
+}
+function resetStudy() {
+  return replaceWords(study.words.map(word => ({ ...word, known: false })));
+}
+function moveCard(dx, dy, direction) {
+  card.style.transform = "translate(" + dx + "px," + dy + "px) rotate(" + Math.max(-16, Math.min(16, dx / 15)) + "deg)";
+  card.dataset.direction = direction || "";
+  $("swipe-label").hidden = !direction;
+  $("swipe-label").textContent = direction === "yes" ? "✓ Znam" : "✕ Nie znam";
+}
+function clearGesture() {
+  gesture = null;
+  card.classList.remove("drag");
+  moveCard(0, 0);
+}
+function answer(known) {
+  if (animating || card.hidden || settings.open) return;
+  const words = study.words.slice();
+  if (known) words[study.cursor] = { ...words[study.cursor], known: true };
+  const next = words.findIndex((word, index) => index > study.cursor && !word.known);
+  const cursor = next < 0 ? firstUnknown(words) : next;
+  if (!saveStudy({ words, cursor })) {
+    clearGesture();
+    return;
+  }
+  animating = true;
+  $("yes").disabled = $("no").disabled = true;
+  gesture = null;
+  card.classList.remove("drag");
+  const exit = innerWidth + card.offsetWidth;
+  moveCard(known ? exit : -exit, 14, known ? "yes" : "no");
+  card.style.opacity = "0";
+  setTimeout(() => {
+    card.classList.add("drag");
+    moveCard(0, 0);
+    card.style.opacity = "";
+    render();
+    requestAnimationFrame(() => {
+      card.classList.remove("drag");
+      $("yes").disabled = $("no").disabled = false;
+      animating = false;
+    });
+  }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 245);
+}
+card.addEventListener("touchstart", event => {
+  if (animating || event.touches.length !== 1) return;
+  const touch = event.touches[0];
+  gesture = { id: touch.identifier, x: touch.clientX, y: touch.clientY };
+  card.classList.add("drag");
+}, { passive: true });
+card.addEventListener("touchmove", event => {
+  if (!gesture) return;
+  if (event.touches.length !== 1) { clearGesture(); return; }
+  const touch = event.touches[0];
+  const dx = touch.clientX - gesture.x;
+  moveCard(dx, (touch.clientY - gesture.y) * .25, Math.abs(dx) < 22 ? null : dx > 0 ? "yes" : "no");
+  if (event.cancelable) event.preventDefault();
+}, { passive: false });
+card.addEventListener("touchend", event => {
+  if (!gesture) return;
+  const touch = Array.from(event.changedTouches).find(item => item.identifier === gesture.id);
+  if (!touch) return;
+  const dx = touch.clientX - gesture.x;
+  const dy = touch.clientY - gesture.y;
+  if (Math.abs(dx) >= Math.min(88, card.offsetWidth * .22) && Math.abs(dx) >= Math.abs(dy)) answer(dx > 0);
+  else clearGesture();
+}, { passive: true });
+card.addEventListener("touchcancel", clearGesture);
+$("yes").onclick = () => answer(true);
+$("no").onclick = () => answer(false);
+$("settings-open").onclick = () => settings.showModal();
+$("badge").onclick = () => {
+  settings.showModal();
+  $("updates").scrollIntoView({ block: "nearest" });
+};
+$("empty-action").onclick = () => study.words.length ? resetStudy() : settings.showModal();
+$("reset").onclick = () => {
+  if (confirm("Przywrócić wszystkie słowa do puli nauki?") && resetStudy()) toast("Postęp zresetowany.");
+};
+$("clear").onclick = () => {
+  if (confirm("Usunąć cały zestaw słów i jego postęp?") && replaceWords([])) toast("Baza słów jest pusta.");
+};
+
+function loadExcel() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  if (excelPromise) return excelPromise;
+  excelPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = SHEETJS;
+    const fail = () => {
+      clearTimeout(timer);
+      script.remove();
+      reject(new Error("Biblioteka Excel jest niedostępna. Połącz się z internetem i spróbuj ponownie."));
+    };
+    const timer = setTimeout(fail, 9000);
+    script.onerror = fail;
+    script.onload = () => {
+      if (!window.XLSX) { fail(); return; }
+      clearTimeout(timer);
+      resolve(window.XLSX);
+    };
+    document.head.append(script);
+  }).catch(error => {
+    excelPromise = null;
+    throw error;
+  });
+  return excelPromise;
+}
+function headerRow(cells) {
+  const normalized = cells.map(cell => cell.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/[^a-z0-9]+/g, " ").trim());
+  const [a, b, c, d] = normalized;
+  return /^(jezyk|lang|language|source language|from|zrodlowy)/.test(a)
+    && /^(jezyk|lang|language|target language|translation language|to|docelowy)/.test(b)
+    && /^(slowo|word|term|haslo|tekst|text|source word)/.test(c)
+    && /^(tlumaczenie|translation|przeklad|target word|znaczenie|meaning)/.test(d);
+}
+function readRows(XLSX, buffer) {
+  const book = XLSX.read(buffer, { type: "array" });
+  const sheet = book.Sheets[book.SheetNames[0]];
+  if (!sheet?.["!ref"]) return { rows: [], skipped: 0 };
+  const range = XLSX.utils.decode_range(sheet["!ref"]);
+  range.s.c = 0;
+  range.e.c = 3;
+  const values = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: "", blankrows: false, range });
+  const candidates = values.map(row => Array.from({ length: 4 }, (_, index) => String(row[index] ?? "").trim()))
+    .filter(row => row.some(Boolean));
+  if (candidates.length && headerRow(candidates[0])) candidates.shift();
+  const rows = candidates.filter(row => row.every(Boolean));
+  return { rows, skipped: candidates.length - rows.length };
+}
+function importStatus(message) {
+  $("import-status").hidden = false;
+  $("import-status").textContent = message;
+}
+async function excelAction(action) {
+  $("choose").disabled = $("template").disabled = true;
+  try { await action(await loadExcel()); }
+  catch (error) { importStatus(error.message); }
+  finally { $("choose").disabled = $("template").disabled = false; }
+}
+$("choose").onclick = () => { $("file").click(); };
+$("file").onchange = event => {
+  const file = event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+  if (!/\.(xlsx|xls)$/i.test(file.name)) { importStatus("Wybierz plik .xlsx lub .xls."); return; }
+  importStatus("Wczytywanie pliku…");
+  void excelAction(async XLSX => {
+    let result;
+    try { result = readRows(XLSX, await file.arrayBuffer()); }
+    catch { throw new Error("Nie można odczytać skoroszytu. Sprawdź, czy plik jest poprawnym plikiem Excel."); }
+    if (!result.rows.length) throw new Error("W pierwszym arkuszu nie znaleziono wierszy z kompletem czterech pól.");
+    if (replaceWords(makeWords(result.rows))) {
+      importStatus("Zaimportowano słowa: " + result.rows.length + "." + (result.skipped ? " Pominięto niepełne wiersze: " + result.skipped + "." : ""));
+    } else importStatus("Nie udało się zapisać zestawu.");
+  });
+};
+$("template").onclick = () => void excelAction(async XLSX => {
+  const book = XLSX.utils.book_new();
+  const sheet = XLSX.utils.aoa_to_sheet([["Język słowa", "Język tłumaczenia", "Słowo", "Tłumaczenie"], ...DEMO]);
+  sheet["!cols"] = [{ wch: 16 }, { wch: 21 }, { wch: 19 }, { wch: 24 }];
+  XLSX.utils.book_append_sheet(book, sheet, "Fiszki");
+  XLSX.writeFile(book, "ZnamTo-szablon.xlsx");
+  importStatus("Szablon jest gotowy do pobrania.");
+});
+
+function installIcons() {
+  function draw(size) {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(size / 192, size / 192);
+    const gradient = ctx.createLinearGradient(0, 0, 192, 192);
+    gradient.addColorStop(0, "#9268ff");
+    gradient.addColorStop(1, "#372078");
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(0, 0, 192, 192, 40);
+    else ctx.rect(0, 0, 192, 192);
+    ctx.fill();
+    ctx.save();
+    ctx.translate(96, 96);
+    ctx.rotate(-.12);
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = "#e5d9ff";
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(-47, -57, 94, 114, 19);
+    else ctx.rect(-47, -57, 94, 114);
+    ctx.stroke();
+    ctx.restore();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 7;
+    ctx.lineCap = ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.arc(96, 97, 25, .3, Math.PI * 1.83);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(109, 76);
+    ctx.lineTo(121, 85);
+    ctx.lineTo(123, 71);
+    ctx.stroke();
+    return canvas.toDataURL("image/png");
+  }
+  function link(rel, href) {
+    const element = document.createElement("link");
+    element.rel = rel;
+    element.href = href;
+    document.head.append(element);
+  }
+  const icon = draw(192);
+  const largeIcon = draw(512);
+  $("brand-icon").src = icon;
+  link("icon", icon);
+  link("apple-touch-icon", draw(180));
+  if (canFetch) {
+    const manifest = {
+      id: appURL.href, name: "ZnamTo — Fiszki", short_name: "ZnamTo", lang: "pl",
+      start_url: appURL.href, scope: new URL("./", appURL).href, display: "standalone",
+      background_color: "#14121c", theme_color: "#14121c",
+      icons: [{ src: icon, sizes: "192x192", type: "image/png" }, { src: largeIcon, sizes: "512x512", type: "image/png" }]
+    };
+    link("manifest", "data:application/manifest+json," + encodeURIComponent(JSON.stringify(manifest)));
+  }
+}
+function compareVersions(a, b) {
+  const left = a.split(".").map(Number);
+  const right = b.split(".").map(Number);
+  for (let index = 0; index < 3; index++) {
+    if (left[index] !== right[index]) return Math.sign(left[index] - right[index]);
+  }
+  return 0;
+}
+function versionFrom(html) {
+  return html.match(/const APP_VERSION\s*=\s*["'](\d+\.\d+\.\d+)["']\s*;/)?.[1];
+}
+function displayNotes(parent, notes) {
+  for (const release of notes) {
+    const section = document.createElement("section");
+    const heading = document.createElement("h3");
+    heading.textContent = "v" + release.version + " · " + release.date;
+    const list = document.createElement("ul");
+    for (const item of release.items) {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.append(li);
+    }
+    section.append(heading, list);
+    parent.append(section);
+  }
+}
+function showReleaseNotes() {
+  let previous;
+  try {
+    previous = localStorage.getItem(VERSION_KEY);
+    if (!previous || compareVersions(APP_VERSION, previous) > 0) localStorage.setItem(VERSION_KEY, APP_VERSION);
+  } catch { return; }
+  if (previous && compareVersions(APP_VERSION, previous) > 0) {
+    const notes = RELEASE_NOTES.filter(release => compareVersions(release.version, previous) > 0);
+    displayNotes($("news-body"), notes);
+    $("news").showModal();
+  }
+}
+function updateControls() {
+  $("check").disabled = checking || upgrading;
+  $("upgrade").disabled = checking || upgrading || !newerVersion || !navigator.onLine;
+  $("badge").hidden = !newerVersion;
+  if (newerVersion) $("badge").textContent = "Nowa wersja " + newerVersion;
+}
+async function freshDocument() {
+  const url = new URL(appURL);
+  url.searchParams.set("znamto-check", Date.now());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+    if (!response.ok || !response.headers.get("content-type")?.includes("text/html")) throw new Error();
+    const html = await response.text();
+    const version = versionFrom(html);
+    if (!version) throw new Error();
+    return { version, html };
+  } finally { clearTimeout(timer); }
+}
+async function checkUpdates() {
+  if (checking || upgrading) return;
+  if (!canFetch || !navigator.onLine) {
+    $("update-status").textContent = canFetch ? "Offline" : "Aktualizacje są dostępne po uruchomieniu na serwerze.";
+    updateControls();
+    return;
+  }
+  checking = true;
+  updateControls();
+  $("update-status").textContent = "Sprawdzanie wersji…";
+  try {
+    const { version } = await freshDocument();
+    newerVersion = compareVersions(version, APP_VERSION) > 0 ? version : null;
+    $("update-status").textContent = newerVersion ? "Dostępna nowa wersja " + newerVersion : "Aktualna wersja";
+  } catch {
+    $("update-status").textContent = navigator.onLine ? "Nie można sprawdzić wersji. Spróbuj ponownie." : "Offline";
+  } finally {
+    checking = false;
+    updateControls();
+  }
+}
+function workerMessage(type, payload = {}) {
+  return new Promise((resolve, reject) => {
+    const worker = sw?.controller;
+    if (!worker) { reject(new Error("Tryb offline nie jest jeszcze gotowy.")); return; }
+    const channel = new MessageChannel();
+    const timer = setTimeout(() => {
+      channel.port1.close();
+      reject(new Error("Przekroczono czas oczekiwania na pamięć offline."));
+    }, 12000);
+    channel.port1.onmessage = event => {
+      clearTimeout(timer);
+      channel.port1.close();
+      if (event.data.ok) resolve();
+      else reject(new Error("Nie udało się zapisać pliku w pamięci offline."));
+    };
+    worker.postMessage({ type, appURL: appURL.href, ...payload }, [channel.port2]);
+  });
+}
+async function setupOffline() {
+  if (!sw) {
+    $("offline-status").textContent = "Tryb offline wymaga HTTPS (lokalnie działa również localhost).";
+    return;
+  }
+  const useCache = async () => {
+    await workerMessage("PREPARE", { version: APP_VERSION, sheet: SHEETJS });
+    offlineReady = true;
+    $("offline-status").textContent = "Fiszki są gotowe do nauki offline.";
+  };
+  try {
+    if (sw.controller) {
+      await useCache();
+      return;
+    }
+    const endpoint = new URL(appURL);
+    endpoint.searchParams.set("znamto-worker", "1");
+    await sw.register(endpoint, { updateViaCache: "none" });
+    if (!sw.controller) {
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          sw.removeEventListener("controllerchange", ready);
+          reject(new Error());
+        }, 8000);
+        function ready() {
+          clearTimeout(timer);
+          sw.removeEventListener("controllerchange", ready);
+          resolve();
+        }
+        sw.addEventListener("controllerchange", ready);
+        if (sw.controller) ready();
+      });
+    }
+    await useCache();
+  } catch {
+    $("offline-status").textContent = "Tryb offline jest niedostępny. Sprawdź połączenie i konfigurację adresu Service Workera.";
+  }
+}
+async function upgradeApp() {
+  if (!newerVersion || checking || upgrading) return;
+  upgrading = true;
+  updateControls();
+  $("update-status").textContent = "Pobieranie aktualizacji…";
+  try {
+    const latest = await freshDocument();
+    if (compareVersions(latest.version, APP_VERSION) <= 0) {
+      newerVersion = null;
+      $("update-status").textContent = "Aktualna wersja";
+      return;
+    }
+    await offlineSetup;
+    if (sw?.controller) {
+      await workerMessage("UPGRADE", { ...latest, sheet: SHEETJS });
+    } else if (offlineReady) throw new Error("Pamięć offline jest niedostępna.");
+    window.location.reload();
+  } catch (error) {
+    $("update-status").textContent = error.message || "Nie udało się pobrać aktualizacji. Spróbuj ponownie.";
+  } finally {
+    upgrading = false;
+    updateControls();
+  }
+}
+$("check").onclick = checkUpdates;
+$("upgrade").onclick = upgradeApp;
+window.addEventListener("online", () => {
+  if (!offlineReady) offlineSetup = setupOffline();
+  void checkUpdates();
+});
+window.addEventListener("offline", () => {
+  $("update-status").textContent = "Offline";
+  updateControls();
+});
+render();
+installIcons();
+$("version").textContent = "v" + APP_VERSION;
+displayNotes($("history"), RELEASE_NOTES);
+showReleaseNotes();
+offlineSetup = setupOffline();
+void checkUpdates();
+void loadExcel().catch(() => {});
+</script>
+<script id="worker-source" type="text/plain">
+"use strict";
+const page = new URL(self.location.href);
+page.search = "";
+const namespace = "znamto:" + page.href + ":";
+const documentCache = namespace + "document";
+const sheetCache = namespace + "excel";
+const sheetPattern = /^https:\/\/cdn\.sheetjs\.com\/xlsx-\d+\.\d+\.\d+\/package\/dist\/xlsx\.full\.min\.js$/;
+let writes = Promise.resolve();
+
+self.addEventListener("install", event => event.waitUntil(self.skipWaiting()));
+self.addEventListener("activate", event => event.waitUntil(self.clients.claim()));
+async function cacheSheet(url) {
+  if (!sheetPattern.test(url)) return;
+  const cache = await caches.open(sheetCache);
+  if (await cache.match(url)) return;
+  const request = new Request(url, { mode: "no-cors", cache: "no-store" });
+  const response = await fetch(request);
+  if (response.ok || response.type === "opaque") await cache.put(url, response);
+}
+function warmSheet(event, url) {
+  // The document is usable even when the third-party CDN is unreachable.
+  event.waitUntil(cacheSheet(url).catch(() => {}));
+}
+function versionFrom(html) {
+  return html.match(/const APP_VERSION\s*=\s*["'](\d+\.\d+\.\d+)["']\s*;/)?.[1];
+}
+function newer(a, b) {
+  const left = a.split(".").map(Number);
+  const right = b.split(".").map(Number);
+  for (let i = 0; i < 3; i++) if (left[i] !== right[i]) return left[i] > right[i];
+  return false;
+}
+async function saveDocument(data) {
+  const cache = await caches.open(documentCache);
+  const current = await cache.match(page.href);
+  if (data.type === "PREPARE" && current) return;
+  let html = data.html;
+  if (data.type === "PREPARE") {
+    const response = await fetch(page.href, { cache: "no-store" });
+    if (!response.ok) throw new Error();
+    html = await response.text();
+  }
+  const version = versionFrom(html);
+  if (!version || (data.type === "UPGRADE" && version !== data.version)) throw new Error();
+  const cachedVersion = current?.headers.get("X-ZnamTo-Version");
+  if (cachedVersion && !newer(version, cachedVersion)) return;
+  // Replacing a single cache entry keeps the previous release usable until the write succeeds.
+  await cache.put(page.href, new Response(html, {
+    headers: { "Content-Type": "text/html; charset=utf-8", "X-ZnamTo-Version": version }
+  }));
+  if (data.type === "UPGRADE") {
+    const names = await caches.keys();
+    await Promise.allSettled(names.filter(name => name.startsWith(namespace) && name !== documentCache && name !== sheetCache)
+      .map(name => caches.delete(name)));
+  }
+}
+self.addEventListener("message", event => {
+  const data = event.data;
+  const port = event.ports[0];
+  if (!port || data?.appURL !== page.href || !["PREPARE", "UPGRADE"].includes(data.type)) return;
+  const operation = writes.then(() => saveDocument(data));
+  writes = operation.catch(() => {});
+  event.waitUntil(operation.then(() => port.postMessage({ ok: true }), () => port.postMessage({ ok: false })));
+  warmSheet(event, data.sheet);
+});
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if (request.method !== "GET") return;
+  const url = new URL(request.url);
+  if (request.mode === "navigate" && url.origin === page.origin && url.pathname === page.pathname && !url.search) {
+    event.respondWith(caches.open(documentCache).then(async cache => (await cache.match(page.href)) || fetch(request)));
+    return;
+  }
+  if (request.destination === "script" && sheetPattern.test(url.href)) {
+    event.respondWith(caches.open(sheetCache).then(async cache => {
+      const cached = await cache.match(url.href);
+      if (cached) return cached;
+      const response = await fetch(request);
+      if (response.ok || response.type === "opaque") await cache.put(url.href, response.clone()).catch(() => {});
+      return response;
+    }));
+  }
+});
+</script>
+<!--
+Local start from this directory:
+node -e "eval(require('node:fs').readFileSync('index.html','utf8').split('SERVER_SOURCE_BEGIN')[2])"
+Production: forward HTTPS requests to this localhost server, or expose the worker-source
+script at the same document pathname with ?znamto-worker=1 and a JavaScript MIME type.
+SERVER_SOURCE_BEGIN
+const fs = require("node:fs/promises");
+const http = require("node:http");
+const path = require("node:path");
+const file = path.resolve("index.html");
+const port = Number(process.env.ZNAMTO_PORT || 8080);
+http.createServer(async (request, response) => {
+  const url = new URL(request.url, "http://localhost");
+  if (request.method !== "GET" || !["/", "/index.html"].includes(url.pathname)) {
+    response.writeHead(404).end();
+    return;
+  }
+  try {
+    const html = await fs.readFile(file, "utf8");
+    const worker = url.searchParams.get("znamto-worker") === "1";
+    const source = worker ? html.match(/<script id="worker-source" type="text\/plain">([\s\S]*?)<\/script>/)?.[1] : html;
+    if (!source) throw new Error("Missing application source");
+    response.writeHead(200, {
+      "Content-Type": worker ? "application/javascript; charset=utf-8" : "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff"
+    }).end(source);
+  } catch {
+    response.writeHead(500).end("Application source unavailable");
+  }
+}).listen(port, "127.0.0.1", () => console.log("http://localhost:" + port + "/"));
+SERVER_SOURCE_BEGIN
+-->
+</body>
+</html>
+
